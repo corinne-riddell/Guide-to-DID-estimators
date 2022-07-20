@@ -66,40 +66,27 @@ issue.
 In the following examples, the effect of state policy changes on a health 
 outcome is the effect of interest. 
 
-### Load the data and functions used in this analysis
+### Download the data and code used in this analysis
 
-To get a local version of the data and functions used for this analysis, you can 
-run the following code. This will download a local copy of all the files contained
-in the GitHub repository "Guide to DID estimators" on Corinne Riddell's GitHub.
+To get a local version of the data and code used for this analysis, you can 
+run the following code within RStudio. This will download a local copy of all 
+the files contained in the GitHub repository "Guide-to-DID-estimators" on 
+Corinne Riddell's GitHub.
 
 ```{r, eval = F}
 install.packages("usethis")
 usethis::use_course("corinne-riddell/Guide-to-DID-estimators")
 ```
 
-The files will open in RStudio when you run this code. In the future, you can 
+By default, this creates a new folder on your desktop (though you can specify a 
+directory using the `destdir` argument in the `use_course()` function.)
+
+The files will open in RStudio when you run the code. In the future, you can 
 option the Guide-to-DID-estimators.Rproj file by double clicking it or use the
 Select "File" > "Open Project" within RStudio and choose the Guide-to-DID-estimators
 project.
 
-```{r}
-#FOR CORINNE TO DOUBLE CHECK - THINK I CAN REMOVE THIS/MODIFY AS THE USETHIS CODE 
-#WILL LOAD THESE IN FOR THE USER...
-
-# The target trial estimator was implemented using code revised from the creator's
-# [GitHub repository](https://github.com/ebenmichael/policy-trial-emulation). We
-# use `source()` to read in the functions here: 
-
-source("./helper_func_ed.R")
-source("./helper_func_ed_sum.R")
-source("./helper_func_ed_sum_hte.R")
-
-# The first file is a slightly edited version of the original helper_funcs.R file
-# found in Ben-Micheal's linked repository. The other helper functions are ones 
-# Dana Goin made to aggregate the estimates under different settings.
-```
-
-### Load the R packages used in this analysis
+### Load the R packages and functions used in this analysis
 
 First, load the packages for reading and plotting the data. The packages `bacondecomp`,  
 `did`, and `staggered` are specific to DID analyses. 
@@ -133,6 +120,22 @@ library(bacondecomp) #Goodman Bacon Decomposition
 library(did) #Callaway and Sant'Anna estimator for DID
 library(staggered) #Sun and Abraham estimator for DID
 ```
+
+The target trial estimator was implemented using code revised from the creator's
+[GitHub repository](https://github.com/ebenmichael/policy-trial-emulation). We
+use `source()` to read in the functions here. This code will only 
+work for you if you downloaded the files using the `use_course()` function in 
+the previous step.:
+
+```{r}
+source("./helper_func_ed.R")
+source("./helper_func_ed_sum.R")
+source("./helper_func_ed_sum_hte.R")
+```
+
+The first file is a slightly edited version of the original helper_funcs.R file
+found in Ben-Micheal's linked repository. The other helper functions are ones
+Dana Goin made to aggregate the estimates under different settings.
 
 ### Package Versions
 
