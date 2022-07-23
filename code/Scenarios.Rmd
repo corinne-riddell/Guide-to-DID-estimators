@@ -1,13 +1,16 @@
 ---
 title: "Guide to DID estimators"
-output: 
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
   html_document:
-    toc: true
-    toc_float: true
-    toc_collapsed: true
-    toc_depth: 3
-    number_sections: true
+    number_sections: yes
     theme: lumen
+    toc: yes
+    toc_collapsed: yes
+    toc_depth: 3
+    toc_float: yes
 ---
 
 
@@ -50,6 +53,15 @@ corresponding manuscript and previous literature. Reviewing the manuscript and i
 references is a great place to start if this guide leaves you with more questions
 than answers.
 
+`r colorize("I would consider changing this section, maybe streamlining to the following:
+
+In this guide, we illustrate scenarios in which difference in differences (DID)
+analysis can be applied. We assume readers know what a DID design is and have some 
+background knowledge in policy analysis. Reviewing the manuscript and its
+references is a great place to start if this guide leaves you with more questions
+than answers.", "blue")`
+
+
 We start with the simplest of difference in differences scenarios and slowly amp
 up the complexity. For each scenario we describe a target parameter
 to estimate and the parameter estimated by a two-way fixed effects (TWFE) model. We
@@ -85,6 +97,9 @@ The files will open in RStudio when you run the code. In the future, you can
 option the Guide-to-DID-estimators.Rproj file by double clicking it or use the
 Select "File" > "Open Project" within RStudio and choose the Guide-to-DID-estimators
 project.
+
+`r colorize("Did you mean "open" rather than "option" in the above paragraph?", "blue")`
+
 
 ### Load the R packages and functions used in this analysis
 
@@ -136,6 +151,8 @@ source("./helper_func_ed_sum_hte.R")
 The first file is a slightly edited version of the original helper_funcs.R file
 found in Ben-Micheal's linked repository. The other helper functions are ones
 Dana Goin made to aggregate the estimates under different settings.
+
+`r colorize("Ben-Micheal should be Ben-Michael", "blue")`
 
 ### Package Versions
 
@@ -216,31 +233,51 @@ policy change.
 3) `r colorize("[NAME FOR THIS ONE:]", "red")` The policy is the only thing that changes at the time of
 treatment that affects the outcome.
 
+`r colorize("How is 3) different from 1)? Seems like if something other than the policy changing affected the outcome the trends wouldn't be parallel", "blue")`
+
+
 If you're familiar with causal inference theory, you will also know about the main 
 assumptions required when estimating causal effects. Ben-Micheal et al. expound
 on these in their paper, and we expand on them here:
+
+`r colorize("Ben-Micheal should be Ben-Michael. I also think you should change this to "... list these in their paper, and we include them here for reference", "blue")`
 
 4) **Consistency:** The policy change is the same across treated units. For 
 example, if states introduced a texting ban while driving and these bans were 
 associated with different penalties, then the policy change would not meet the
 consistency assumption because the different penalties may have varyed effects 
 on the outcome.
+
+`r colorize("I think we need to be more precise about how this differs from a heterogeneous effect. What about: 
+There are no multiple versions of treatment that are unknown to the investigator. For 
+example, if states introduced a texting ban while driving and these bans were 
+associated with different penalties, then the policy change would not meet the
+consistency assumption because the different penalties may have varied effects 
+on the outcome and the investigator is analyzing these policies as though they were the same. However, if the investigator knows that the penalties differed and estimated 
+the effects accounting for this heterogeneity, then the consistency assumption would not be violated.", "blue")`
+
 5) **No interference:** Outcomes of individuals in one state do not affect 
-outcomes of individuals in other states.
+outcomes of individuals in other states. `r colorize("Actually, this should be policies that affect individuals in one state should not affect the outcomes of individuals in other states", "blue")`
 6) **Exchangeability:** Had the treated states been untreated, they would have 
 experienced the trend in outcomes experienced by the untreated group. This 
 causal assumption is the same as the parallel trends assumption. `r colorize("[DANA DO YOU AGREE?]", "red")`
+`r colorize("Yes, although I think we should also say that the potential outcomes are independent of the treatment received.", "blue")`
 7) **Positivity:** Each state has a non-zero probability of being treated. 
 `r colorize("DISCUSS: See Ben-Micheal paper - they say that positivity is not a required assumption for standard DID]", "red")`
 
+`r colorize("Maybe we can also add: This is not required for DID estimators which use a linear model, which instead relies on the parametric model to extrapolate if necessary.", "blue")`
+
 8) **Correct model specification**: `r colorize("SOMETHING ABOUT LINEARITY? ALSO RELATED TO THE PARALLEL TRENDS ASSUMPTION", "red")`
+
+`r colorize("Do you think we need this if we have the rest of the assumptions? I'm trying to think what this covers that isn't already listed and can't think of anything", "blue")`
 
 
 ### Two-way fixed effects (TWFE) regression model
 
 Under the canonical TWFE design, we can estimate the policy effect by including
 a fixed effect (FE) for state, a FE for time, and an indicator for the policy
-change. The effect estimate is the regression coefficient on the policy variable.
+change. 
+`r colorize("I would add: The indicator should be 1 for when the treated states are in the post-treatment period, and 0 otherwise", "blue")` The effect estimate is the regression coefficient on the policy variable.
 
 ```{r}
 s1_mod <- lm(outcome ~ state + time + policy, data = s1)
@@ -344,6 +381,8 @@ states, then the estimated effect is the average ATT across the
 states.
 
 `r colorize("Do you have a sense why the state FEs in Scen 2b are a bit off? The FE for state 2 should be 1 and for state 3 should be 2.", "red")`
+
+`r colorize("I think this is because neither state actually has a treatment effect of 2.5. So I'm guessing it borrows from the FE for each state to make the averaging work.", "blue")`
 
 ## Scenario 3A and 3B (Two states, multiple time points)
 
@@ -469,8 +508,10 @@ The following can be read from the labelled plot for Scenario 3B:
 For Scenario 3B the effect is dynamic, and rather than 
 calculating an ATT that aggregates over post-time, we may want to calculate 
 the effect separately by time since treatment. Here, the effect increases over 
-time, suggesting that the policy change takes time to "kick-in". In contrast, 
-some policies may be associated with large initial effects that attenuate over 
+time, suggesting that the policy change takes time to "kick-in". 
+
+`r colorize("Or, there is a positive feedback loop of some kind. If it take a while to kick in then it would level off at some point.", "blue")`
+In contrast,  some policies may be associated with large initial effects that attenuate over 
 time. Knowing if a policy introduction is associated with a changing effect over
 time is therefore important for understanding the real-world effects of the policy. 
 
@@ -491,7 +532,7 @@ s3a_mod <- lm(outcome ~ policy + state + factor(time),
 tidy(s3a_mod)
 ```
 
-The coefficient of the policy term is `r s3a_mod$coefficients["policy1"]`
+The coefficient of the policy term `r colorize("for scenario 3A.", "blue")` is `r s3a_mod$coefficients["policy1"]`
 showing that the regression model estimate equaled the causal effect.
 
 Estimation of the dynamic effect in Scenario 3B:
@@ -501,7 +542,7 @@ s3b_mod <- lm(outcome ~ policy + state + factor(time),
 tidy(s3b_mod)
 ```
 
-The coefficient of the policy term is `r s3b_mod$coefficients["policy1"]`
+The coefficient of the policy term `r colorize("for scenario 3B.", "blue")`is `r s3b_mod$coefficients["policy1"]`
 showing that the regression model estimate equaled the causal effect.
 
 ### TWFE Regression Model with `time_since_policy` specification
@@ -534,12 +575,15 @@ tidy(s3b_mod2)
 For this scenario, the effect estimate is 2 in the first time after treatment, 
 then 4, and so on. 
 
-Note that we could have modeled `time_since_policy` linearly, however including 
+Note that we could have modeled `time_since_policy` linearly `r colorize("by this do you mean you could just include a time_since_policy numeric variable?", "blue")`, however including 
 `time_since_policy` as a factor variable allows the estimation of effects to be
-non-linear over time.
+non-linear over time.`r colorize("I think I would say instead, ".. allows the effects to change non-linearly over time"", "blue")`
 
+`r colorize("May want to blod the "Takeaway" to be consistent", "blue")`
 Takeaway: When there are two treatment groups and multiple pre- and post- time points, you can calculate the DID estimate using TWFE regression when the effect is constant 
-or dynamic. Using a "time since treatment" indicator will estimate effects 
+or dynamic. `r colorize("Consider saying when there is one treatment and one control group? Otherwise two treatment groups sounds like you can have two treated groups, which then introduces possibility for staggered adoption.", "blue")`
+
+Using a "time since treatment" indicator will estimate effects 
 separately by time since the policy change, allowing you to see how the effect 
 has changed over time.
 
@@ -605,6 +649,8 @@ The following can be read from the labelled plot:
 * $DID_{4 vs 1} = 18-15 = 3$
 * $ATT = 2$
 
+`r colorize("Do we want to say Overall ATT = mean(2,1,3) = 2? I feel like that might be helpful to show how the individual results are summarized into one overall estimate.", "blue")`
+
 ### TWFE Regression Model 
 
 ```{r}
@@ -621,6 +667,8 @@ and later-treated states contribute to the coefficient estimate of the policy
 term. While all states are treated at the same time in this scenario, we can use
 the Goodman-Bacon decomposition function `bacon()` to partition the effect 
 estimate into weighted component parts. 
+
+`r colorize("I don't really get why you are introducing Goodman Bacon and the other estimators here since there is no staggered adoption. I feel like they should come later. Or if you want to introduce them here, I would add more to their introduction that basically says, you don't need to use these estimators in this situation because the standard DID approach still works, but we show how they work to show you get the same answer with all of them.", "blue")`
 
 ### Goodman Bacon Decomposition 
 
@@ -669,6 +717,8 @@ argument called `gname`. `gname` expects a variable which encodes for each state
 the time of first policy change. For never-treated state 1, this variable 
 equals 0 and for treated states 2-4 this variable equals 6. 
 
+`r colorize("Is there a reason why you used "notyettreated" rather than "nevertreated" for the control group here?, "blue")`
+
 ```{r, warning=F}
 s4_cs <- att_gt(yname = "outcome", 
              tname = "time", 
@@ -686,7 +736,7 @@ Here, we see the ATT is equal to `r # m2_ag$overall.att` as estimated by the TWF
 model.
 
 ### Target Trial Estimator
-
+`r colorize("change Ben-Micheal to Ben-Michael", "blue")`
 We can also calculate the estimate using the target trial estimator introduced 
 by Ben-Micheal, Feller, and Stuart. We employ slightly edited versions of the 
 code that these authors provide with their published article. The code 
@@ -696,6 +746,20 @@ across adoption cohorts for each event time. We built upon this code to further
 aggregate across event times to produce one estimate across all post-treatment 
 times using the `fit_event_jack_sum()` and `fit_event_jack_sum_hte()` functions.
 Here we use `fit_event_jack_sum()` because there is only one adoption cohort. 
+
+`r colorize("Change this: "The code 
+calculates estimates of the effect for every 
+combination of adoption cohort and event time, as we as an estimate aggregated 
+across adoption cohorts for each event time. We built upon this code to further
+aggregate across event times to produce one estimate across all post-treatment 
+times using the `fit_event_jack_sum()` and `fit_event_jack_sum_hte()` functions.
+Here we use `fit_event_jack_sum()` because there is only one adoption cohort."  
+
+to this instead: "The code 
+calculates estimates of the effect for every event time (also called time since treatment).
+We built upon this code to further
+aggregate across event times to produce one overall estimate using the `fit_event_jack_sum()` and `fit_event_jack_sum_hte()` functions.
+Here we use `fit_event_jack_sum()` because there is only one adoption cohort.", "blue")`
 
 ```{r}
 s4_bm <- fit_event_jack_sum(outcome_var = "outcome", 
@@ -904,7 +968,7 @@ s5_bacon <- bacon(outcome ~ policy_n,
       time_var = "time")
 ```
 
-We can also see a list of each comparison and it's weight: 
+We can also see a list of each comparison and its weight: 
 
 ```{r}
 s5_bacon
@@ -959,6 +1023,9 @@ s5_bm
 
 **Takeaway:** When a policy's introduction is staggered in time and the treatment
 effect is constant (not dynamic), TWFE can be used to estimate the treatment effect.
+
+`r colorize("Need to also specify that the treatment effects are not heterogeneous by adoption cohort", "blue")`
+
 
 ## Scenario 6 (4 states, staggered timing, dynamic effects)
 
@@ -1128,6 +1195,9 @@ time includes the effects of the treatment, and since the effect is dynamic it
 does not satisfy the parallel trends assumption. However this contrast still 
 contributes to the TWFE regression estimate!
 
+`r colorize("I think we will want to include an estimate of the truth here. This depends on what parameter we're interested in, but I think the average dynamic effect is the one that makes the most sense.", "blue")`
+
+
 Let's take a look...
 
 ### TWFE Regression Model
@@ -1177,6 +1247,8 @@ incorporates a contrast that we wouldn't want to make in practice between an
 earlier treated and a later treated group. To overcome this, we use the 
 Callaway and Sant'Anna estimator. 
 
+`r colorize("Here can we say "one of the other estimators", rather than the "Callaway and Sant'Anna estimator"?.", "blue")`
+
 ### Group-Time ATT Estimator
 
 Like in the earlier examples we start by running the `att_gt()` function. Unlike
@@ -1210,6 +1282,8 @@ time in the post-treatment period `r colorize("Is there more to say about how th
 time periods post treatment and for contrast 2, there are 9 periods 
 post-treatment. Thus this estimate is the weighted average: $10.5\times(16/25) + 7\times(9/25)=$ `r 10.5*(16/25) + 7*(9/25)`
 
+`r colorize("I think this is a good way to explain the weighting. If you want, you could add more detail, for instance: "...combines them into a weighted average, where the weights correspond to each adoption cohort's time spent in the post-treatment period"", "blue")`
+
 ```{r}
 #aggregate the group time average treatment effects
 #type = "simple": weighted average of all group-time average treatment effects
@@ -1221,6 +1295,9 @@ Alternatively, we can specify `type = "group"` to get separate effect estimates
 according to time of implementation. Note that `group` denotes the time of 
 the policy's introduction for the treated states.
 
+`r colorize("I think we will also want to acknowledge that the Overall ATT reported here is different, 
+and in this case is just the simple average between the two ATTs but in general is a weighted average with the weights proportional to the number of units in each adoption cohort.", "blue")`
+
 ```{r}
 s6_cs_ag2 <- aggte(s6_cs, type = "group")
 summary(s6_cs_ag2)
@@ -1230,6 +1307,8 @@ Alternatively, you can estimate the dynamic effect separately for each time
 since the treatment has been introduced. Remember that this effect estimation
 is also done for pre-treatment time, so don't be alarmed by all the rows in this 
 table!
+
+`r colorize("I think we will also want to acknowledge here that the Overall ATT is the simple average of all effects in the post-treatment time. Here you can see this is (sum(3:18)/length(3:18)) = 10.5", "blue")`
 
 ```{r}
 s6_cs_ag3 <- aggte(s6_cs, type="dynamic")
@@ -1262,6 +1341,7 @@ ggdid(s6_cs_ag4)
 ### Target Trial Estimator
 
 `r colorize("This is not working for this example... not sure why...", "red")``
+`r colorize("For some reason the max_time_to was being added in seconds rather than days. So, I just increased the max_time_to so it includes all post-treatment times.", "blue")``
 
 ```{r}
 s6_bm <- fit_event_jack(outcome_var = "outcome", 
@@ -1269,7 +1349,7 @@ s6_bm <- fit_event_jack(outcome_var = "outcome",
                             unit_var = "state",
                             policy_var = "time_first_trt_date", 
                             data = s6, 
-                            max_time_to = 10000)
+                            max_time_to = 10e7)
 
 
 s6_bm_ave <- s6_bm %>% filter(cohort == "average")
@@ -1300,15 +1380,18 @@ tidy(s6_mod2) %>% filter(str_detect(term, "time_since")) %>%
   arrange(time) 
 ```
 In this setting, the regression model still works! The estimates from the policy
-indicator variables equal the output from the Callaway Sant'Anna when specified 
-using `type = "dynamic"`
+indicator variables equal the output from the Callaway Sant'Anna when specified using `type = "dynamic"` and the 
+`r colorize("and Ben-Michael approach", "blue")`
 
 **Takeway:** When the treatment effect is staggered and dynamic, you can still 
 capture the effect estimate using a TWFE model so long as the policy effect is 
 modeled using the `time since treatment` variable. The key question for the 
 researcher is identifying their parameter of interest -- are you interested in 
 estimating a dynamic effect, or does a parameter that summarizes over treatment
-time make sense? I am inclined to start by estimating a dynamic effect to see
+time make sense? 
+
+`r colorize("I think these points should be summarized at the end in a recommendation section", "blue")`
+I am inclined to start by estimating a dynamic effect to see
 if the model supports the presence of a dynamic effect. If so, it is important 
 of how the policy operates after being rolled out. If there is no strong support
 for a dynamic effect, then I would consider estimating the effects separately by
@@ -1317,6 +1400,8 @@ timing of introduction if that is sensible for the policy change under study
 summary parameter.
 
 ## Scenario 7 (4 states, staggered timing, dynamic and hetergenous treatment effects)
+
+`r colorize("Just a note that we didn't consider this scenario in the simulations.", "blue")`
 
 Scenario 7 is like Scenario 6 except now the treatment effect is dynamic AND
 heterogeneous. In this scenario, the state that implements the policy change 
@@ -1482,6 +1567,8 @@ s7_comp1 + s7_comp2 + s7_comp3 + s7_comp4 + plot_layout(guides = "collect")
 * Pre-post difference for later-treated state 4 is: 68-39=29
 * $DID_{4 vs 3} = 29-40 = -11$
 
+`r colorize("Again I think here it would be helpful to present a truth estimate, so the reader can see how contrast 4 biases the estimate", "blue")`
+
 Similar to the previous scenario, parallel trends is satisfied for contrasts 1-3, 
 so we can be okay with these contrasts contributing to the average effect estimate. 
 Like last time, contrast 4 is the problem, and here the problem is intensified
@@ -1493,6 +1580,8 @@ in the comparison state -- because the control state is still experiencing a str
 This makes the DID for this group and time look negative -- like the treatment
 is associated with a decrease in the outcome!
 
+`r colorize("The DID was negative for scenario 6's contrast 4 too, so I think you can delete the last sentence", "blue")`
+
 ### TWFE Regression Model
 
 Let's take a look at the regression output:
@@ -1503,6 +1592,8 @@ s7_mod <- lm(outcome ~ policy + state + factor(time),
 tidy(s7_mod)
 ```
 The coefficient of the policy term equals `r s7_mod$coefficients["policy1"] %>% round(2)`.
+
+`r colorize("Here we wrestle with the idea of the truth too. I think we should discuss this earlier and make clear how the investigator will need to define this for their question of interest", "blue")`
 
 The question is, does this estimate come close to what it should be? Well, above
 we calculated effect estimates for four separate contrasts, where the fourth
@@ -1584,8 +1675,12 @@ summary(s7_cs_ag)
 `r colorize("[DANA: CAN YOU CONFIRM YOU AGREE WITH WHAT I WROTE ABOVE? specifically how the 
 simple estimate is calculated.]", "red")`
 
+`r colorize("Yes this is correct.", "blue")`
+
 Alternatively, we can specify `type = "group"` to get separate effect estimates 
 according to time of implementation and see that these match our by-hand calculations: 
+
+`r colorize("Again I think we will want to comment on how the Overall ATT is a simple average of the two groups 11.5 = mean(18,5)", "blue")`
 
 ```{r}
 s7_cs_ag2 <- aggte(s7_cs, type = "group")
@@ -1632,14 +1727,14 @@ ggdid(s7_cs_ag4)
 ### Target Trial Estimator
 
 `r colorize("This is not working for this example either, any ideas what it happening?", "red")``
-
+`r colorize("This is the same issue with max_time_to, which I've increased to 10e7 so it should be working now", "blue")`
 ```{r}
 s7_bm <- fit_event_jack(outcome_var = "outcome", 
                         date_var = "time_as_date", 
                         unit_var = "state",
                         policy_var = "time_first_trt_date", 
                         data = s7, 
-                        max_time_to = 10000)
+                        max_time_to = 10e7)
 
 s7_bm_ave <- s7_bm %>% filter(cohort == "average")
 
@@ -1672,12 +1767,12 @@ tidy(s7_mod2) %>% filter(str_detect(term, "time_since")) %>%
 The effect estimates on the policy indicators do not equal an average of the ATTs
 from the two states for each time period. For this example, this specification 
 gives estimates that are systematically lower than those produced by the Callaway
-Sant'Anna model. 
+Sant'Anna model and `r colorize("and Ben-Michael approach", "blue").
 
 **Takeway:** When the treatment effect is staggered, dynamic, and hetergeneous, 
 the TWFE regression specification will produced biased results, as will the 
 specification using a categorical variable for time since treatment. In this 
-case, it is best to use another approach like the Callaway Sant'Anna function. 
+case, it is best to use another approach like the Callaway Sant'Anna `r colorize("and Ben-Michael", "blue")` approaches. 
 
 ## Scenario 8 (24 states, staggered timing, dynamic and hetergenous treatment effects)
 
@@ -1859,6 +1954,7 @@ m2_var <- vcovHC(s8_mod)
 We can then pull out the variance from the `policy1` term from the 
 variance-covariance matrix and use it to compute Wald type confidence intervals:
 
+
 ```{r}
 est = summary(s8_mod)$coefficients["policy1", "Estimate"] 
 lb = summary(s8_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
@@ -1874,6 +1970,8 @@ We can use the Goodman Bacon decomposition to examine the contrasts contributing
 TWFE estimate. I set up this scenario such that the effects should be the same
 as for scenario 7, though this time the pre-treatment period is longer than in 
 scenario 7.
+
+`r colorize("I don't think you need to bring in scenario 7, it made me think I needed to go remind myself what it was, but you have the relevant info below so I think it's distracting. ", "blue")`
 
 The DID contrasts for the four comparisons are:
 
@@ -1906,13 +2004,14 @@ shortened.
 
 Compare to Callaway and Sant'Anna's approach:
 
+`r colorize("again I think the control group should be "nevertreated". I don't think it affects anything because the never treated are included as controls, but I'm not sure you necessary want to include the not yet treated as controls for this example., "blue")`
 ```{r}
 s8_cs <- att_gt(yname = "outcome", 
              tname = "time", 
              idname = "state", 
              gname = "time_first_treat", 
              data = all_states, 
-             control_group = "notyettreated",
+             control_group = "nevertreated",
              anticipation = 0)
 
 s8_cs_ag <- aggte(s8_cs, type="simple")
@@ -1942,6 +2041,8 @@ s8_cs_ag2$att.egt[1]*(16/25) + s8_cs_ag2$att.egt[2]*(9/25)
 
 `r colorize("NOTE: (Was expecting 18 and 5 as the group specific estimates -- possible we are off just due to random error - need to rerun with a different seed or with less variability and see if that is true)", "red")`
 
+`r colorize("Yeah, I think it might be a random error issue. The confidence intervals cover 5 so I am not too worried.", "blue")`
+
 Finally, we can look at these effect estimated separately for each time since 
 the intervention began and graph them: 
 
@@ -1960,6 +2061,7 @@ randomly distributed around the zero line. This is true in our example, so we
 wouldn't be concerned about violating the parallel trends assumption with these
 data. 
 
+
 ### Cohort ATT Estimator
 
 We can also calculate the Sun & Abraham estimator. We couldn't run this for the
@@ -1967,6 +2069,14 @@ other scenarios because the function throws an error when if cannot estimate the
 standard errors for those scenarios. To use the `staggered_sa` function, we 
 need to add a new variable where the `time_first_treat` variable is set to `Inf` 
 for all states that were never-treated:
+
+`r colorize("Typo, would replace the previous paragraph with: 
+
+Now we can also calculate effects using the Sun & Abraham estimator. We couldn't run this estimator for the
+other scenarios because the function throws an error if it's unable to estimate
+standard errors. To use the `staggered_sa` function, we 
+need to add a new variable where the `time_first_treat` variable is set to `Inf` 
+for all states that were never-treated:", "blue")`
 
 ```{r}
 table(all_states$time_first_treat, useNA = "always")
@@ -2038,7 +2148,7 @@ s8_bm <- fit_event_jack(outcome_var = "outcome",
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states, 
-                        max_time_to = 10000)
+                        max_time_to = 10e7)
 
 s8_bm_ave <- s8_bm %>% filter(cohort == "average")
 
@@ -2190,13 +2300,15 @@ The Sun Abraham estimate also stays exactly the same!
 
 ### Comparison of the Target trial estimates
 
+`r colorize("Is the target trial the same too? Also, is there a reason you're using the HTE version here but not previously?", "blue")`
+
 ```{r}
 s8_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
                         date_var = "time3", 
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states, 
-                        max_time_to = 10000)
+                        max_time_to = 10e7)
 
 s8_bm_hte %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
@@ -2208,7 +2320,7 @@ s9_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome",
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states2, 
-                        max_time_to = 10000)
+                        max_time_to = 10e7)
 
 s9_bm_hte %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
@@ -2220,4 +2332,5 @@ s9_bm_hte
 more weight on contrasts that are closer to the middle of the panel. The 
 Callaway Sant'Anna and Sun Abraham estimates do not have this issue.
 
+`r colorize("Add target trial to this takeaway too.", "blue")`
 
