@@ -22,48 +22,59 @@ colorize <- function(x, color) {
       x)
   } else x
 }
+
+library(r2symbols)
 ```
 
 `r colorize("TODO1: check with Dana that I am using the correct fit_event_jack functions across the different scenarios", "purple")`
 
-## How to use this Companion Guide
+# How to use this website
 
-**Citations**
+## Citations
 
-Please use the following citations when using this website: 
+This website was developed by Corinne Riddell and Dana Goin, epidemiologists at 
+the University of California, Berkeley (UC Berkeley) and San Francisco (UCSF), 
+respectively. If you use this website to inform your research, please use the 
+following citations: 
 
-Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Pre-print. ADD LINK.
+1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Pre-print. ADD LINK.
 
-Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health. Pre-print. ADD LINK.
+2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health. Pre-print. ADD LINK.
 
-**Bug reports**
+## License
 
-Submit any bug reports to: c.riddell [AT] berkeley [DOT] edu or open an issue on [Github](https://github.com/corinne-riddell/Guide-to-DID-estimators).
+Guide to DID estimators `r symbol("copyright")` 2022 by Corinne A Riddell and Dana E Goin is licensed 
+under the [Creative Commons Attribution-Non-Commercial-NoDerivatives 4.0
+License](https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1).
 
-## Overview
+## Contribute fixes and improvements
 
-In this companion guide, we illustrate scenarios in which difference in differences (DID)
-analysis can be applied. We assume readers know what a DID design is and have some background knowledge in policy analysis. Reviewing the manuscript by Goin and 
-Riddell and its references is a great place to start if this guide leaves you 
-with more questions than answers.
+This website is under development. If you find an error, or would like to suggest
+an improvement, please let us know by opening an issue on [Github](https://github.com/corinne-riddell/Guide-to-DID-estimators)
+or submitting a bug report to: c.riddell [AT] berkeley [DOT] edu.
 
-We start with the simplest of difference in differences scenarios and slowly amp
-up the complexity. For each scenario we describe a target parameter
-to estimate and the parameter estimated by a two-way fixed effects (TWFE) model. We
-also apply the Goodman-Bacon decomposition to this parameter to determine if the
-TWFE estimate is partially composed of estimates that are "forbidden" (e.g., ones
-that compare a newly treated state to a previously treated state) and apply alternate
-estimation approaches. 
+# Overview
 
-The goal is to illustrate scenarios where the usual TWFE method of estimation 
-provides suitable results and scenarios where this approach is biased. 
-In the latter case, we show alternative methods to estimation to overcome the 
-issue.
+This guide illustrates scenarios in which difference in differences (DID) 
+analysis can be applied. We assume readers know what a DID design is, have 
+some background knowledge in policy analysis, and have working knowledge of R 
+and RStudio. Reviewing the manuscript by Goin and Riddell and its references is 
+a great place to start if this guide leaves you with more questions than answers.
+
+We start with the simplest of DID scenarios and slowly amp up the complexity. 
+For each scenario we describe a target parameter to estimate and the parameter 
+estimated by a two-way fixed effects (TWFE) model. We apply the 
+Goodman-Bacon decomposition to this parameter to determine if the TWFE estimate 
+is influenced by estimates that are "forbidden" (e.g., ones that compare a 
+newly treated state to a previously treated state). The goal is to illustrate 
+when the usual TWFE method of estimation provides suitable results and when
+the TWFE approach is biased. In the latter case, we show alternative methods to
+estimation to overcome the issue.
 
 In the following examples, the effect of state policy changes on a health 
 outcome is the effect of interest. 
 
-### Download the data and code used in this analysis
+## Download data and code
 
 To get a local version of the data and code used for this analysis, you can 
 run the following code within RStudio. This will download a local copy of all 
@@ -71,19 +82,19 @@ the files contained in the GitHub repository "Guide-to-DID-estimators" on
 Corinne Riddell's GitHub.
 
 ```{r, eval = F}
-install.packages("usethis")
+install.packages("usethis") #run this line if you need to install the usethis package
 usethis::use_course("corinne-riddell/Guide-to-DID-estimators")
 ```
 
-By default, this creates a new folder on your desktop (though you can specify a 
-directory using the `destdir` argument in the `use_course()` function.)
+By default, this creates a new folder on your desktop. You can specify a 
+different directory using the `destdir` argument in the `use_course()` function.
 
 The files will open in RStudio when you run the code. In the future, you can 
-open the Guide-to-DID-estimators.Rproj file by double clicking it or by using the
-Select "File" > "Open Project" within RStudio and choose the Guide-to-DID-estimators
-project.
+open the Guide-to-DID-estimators.Rproj file found in the downloaded folder by 
+double clicking it or by using the Select "File" > "Open Project" within RStudio
+and choosing the Guide-to-DID-estimators project.
 
-### Load the R packages and functions used in this analysis
+## Load R packages and functions
 
 First, load the packages for reading and plotting the data. The packages `bacondecomp`,  
 `did`, and `staggered` are specific to DID analyses. 
@@ -118,11 +129,10 @@ library(did) #Callaway and Sant'Anna estimator for DID
 library(staggered) #Sun and Abraham estimator for DID
 ```
 
-The target trial estimator was implemented using code revised from the creator's
-[GitHub repository](https://github.com/ebenmichael/policy-trial-emulation). We
-use `source()` to read in the functions here. This code will only 
-work for you if you downloaded the files using the `use_course()` function in 
-the previous step.:
+One estimator we use in the guide, the Target Trial estimator, was implemented 
+using code revised from the creator's [GitHub repository](https://github.com/ebenmichael/policy-trial-emulation). 
+We use `source()` to read in the functions below. This code will only work if 
+you downloaded the files using the `use_course()` function in the previous step. 
 
 ```{r}
 source("./helper_func_ed.R")
@@ -131,10 +141,10 @@ source("./helper_func_ed_sum_hte.R")
 ```
 
 The first file is a slightly edited version of the original helper_funcs.R file
-found in Ben-Michael's linked repository. The other helper functions are ones
+found in Ben-Michael's linked GitHub repository. The other helper functions are ones
 Dana Goin made to aggregate the estimates under different settings.
 
-### Package Versions
+## Package Versions
 
 Since the packages used for these analyses are relatively new, we anticipate 
 them to change over time and that these changes may affect the readers ability 
@@ -149,7 +159,7 @@ packageVersion("staggered")
 packageVersion("did")
 ```
 
-## Scenario 1 (2 states by 2 time points)
+# Scenario 1 (2 states by 2 time points)
 
 We first consider the simplest case in which there is one state that never adopts 
 the policy (the never-treated group), and one state that does implement the policy 
@@ -176,7 +186,7 @@ time, and policy variables as "text" so that R will consider them as
 categorical/factor variables in the analysis (or, using econ-speak, as 
 "fixed effects").
 
-### Visualization of Scenario 1
+## Visualization of Scenario 1
 
 ```{r, echo = F}
 ggplot(s1, aes(x = time, y = outcome)) + 
@@ -244,7 +254,7 @@ models.
 
 `r colorize("Do you think we need this if we have the rest of the assumptions? I'm trying to think what this covers that isn't already listed and can't think of anything", "blue")`
 
-### Two-way fixed effects (TWFE) regression model
+## Two-way fixed effects (TWFE) regression model
 
 Under the canonical TWFE design, we can estimate the policy effect by including
 a fixed effect (FE) for state, a FE for time, and an indicator for the policy
@@ -265,11 +275,13 @@ variability in the data, so the model cannot estimate a standard error (as
 indicated by the `NaN` in the regression output). In a later scenario, we add
 noise to the data and show how to estimate the standard error.
 
-**Takeaway:** When there are only two treatment groups and two time points, 
+## Summary
+
+When there are only two treatment groups and two time points, 
 where one of the groups becomes treated, you can calculate the DID estimate 
 by hand or using TWFE regression.
 
-## Scenario 2A and 2B (3 states, homogeneous and heterogeneous treatment effects)
+# Scenario 2A and 2B (3 states, homogeneous and heterogeneous treatment effects)
 
 This scenario is similar to Scenario 1, except now there are two states that
 undergo treatment. In Scenario 2A, the magnitude of the treatment effect is the 
@@ -290,7 +302,7 @@ s2b %<>% mutate(ever_trt = case_when(state %in% c("2", "3") ~ "treated",
                                      state == "1" ~ "never-treated"))
 ```
 
-### Visualization of Scenario 2
+## Visualization of Scenario 2
 
 ```{r, echo=F}
 s2a_plot <-ggplot(s2a, aes(x = time, y = outcome)) + 
@@ -329,9 +341,7 @@ The following can be read from the labelled plot for Scenario 2B:
 * Post-Pre Difference for treated state 3: 17-11=6
 * Causal effect of policy = 2 for state 2 vs 1 and 3 for state 3 vs 1 for an ATT of 2.5
 
-
-
-### TWFE Regression model
+## TWFE Regression model
 
 ```{r}
 s2a_mod <- lm(outcome ~ policy + state + time, data = s2a)
@@ -349,13 +359,15 @@ tidy(s2b_mod)
 The coefficient estimate for the policy variable equals to 
 `r s2b_mod$coefficients["policy1"]`, which is the ATT for Scenario 2b. 
 
-**Takeaway:** When there are multiple treatment groups and two time points, 
+## Takeaway
+
+When there are multiple treatment groups and two time points, 
 where >1 of the groups becomes treated, you can calculate the DID estimate by 
 hand or using TWFE regression. If treatment effects are heterogeneous across 
 states, then the estimated effect is the average ATT across the 
 states.
 
-## Scenario 3A and 3B (Two states, multiple time points)
+# Scenario 3A and 3B (Two states, multiple time points)
 
 In Scenario 3, the number of time periods is increased to incorporate 5 time 
 points before and after a policy change. One never-treated and one treated
@@ -407,7 +419,7 @@ s3b_mean_info <- s3b %>% group_by(state, post) %>%
   mutate(diff = post_TRUE - post_FALSE)
 ```
 
-### Visualization of Scenario 3
+## Visualization of Scenario 3
 
 ```{r, echo=F, fig.height = 5, fig.width = 10}
 s3a %<>% mutate(ever_trt = case_when(state == "2" ~ "treated",
@@ -490,7 +502,7 @@ Thus, in this scenario we first estimate the average treatment effect using a
 TWFE model, and then we estimate the dynamic effect by extending the TWFE model
 to include a categorical indicator for time since the policy's introduction. 
 
-### TWFE Regression Model
+## TWFE Regression Model
 
 Estimation of the dynamic effect in Scenario 3A. Different from the previous 
 scenarios, we need to use `factor(time)` to ensure time is modeled using 
@@ -516,7 +528,7 @@ tidy(s3b_mod)
 The coefficient of the policy term for scenario 3B is `r s3b_mod$coefficients["policy1"]`
 showing that the regression model estimate equaled the causal effect.
 
-### TWFE Regression Model with `time_since_policy` specification
+## TWFE Regression Model with `time_since_policy` specification
 
 Rather than using a binary indicator for the policy change, it can be coded
 using the `time_since_policy` variable. If we include this as a factor variable
@@ -551,13 +563,15 @@ a numeric variable for `time_since_policy`). Here, we modeled `time_since_policy
 as a factor variable, which allows the effect estimates to change non-linearly 
 over time.
 
-**Takeaway:** When there is one treated group and one control group, with 
+## Summary
+
+When there is one treated group and one control group, with 
 multiple pre- and post- time points, you can calculate the DID estimate using 
 TWFE regression when the effect is constant or dynamic. Using a "time since 
 treatment" indicator will estimate effects separately by time since the policy 
 change, allowing you to see how the effect has changed over time.
 
-## Scenario 4 (4 states, hetergenous treatment effects)
+# Scenario 4 (4 states, hetergenous treatment effects)
 
 Scenario 4 extends Scenario 3 to the multiple group setting. State 1 is 
 never-treated, while states 2-4 undergo treatment at time=6. The effects are 
@@ -584,7 +598,7 @@ s4_mean_info <- s4 %>% group_by(state, post) %>%
   mutate(diff = post_TRUE - post_FALSE)
 ```
 
-### Visualization of Scenario 4
+## Visualization of Scenario 4
 
 ```{r, echo=F}
 ggplot(s4, aes(x = time, y = outcome)) + 
@@ -619,7 +633,7 @@ The following can be read from the labelled plot:
 * $DID_{4 vs 1} = 18-15 = 3$
 * $\text{Average ATT} = (2 + 1 + 3)/3 = 2$
 
-### TWFE Regression Model 
+## TWFE Regression Model 
 
 ```{r}
 s4_mod <- lm(outcome ~ policy + state + factor(time), 
@@ -637,7 +651,7 @@ Below, we show how to use the Goodman-Bacon decomposition function `bacon()`,
 to show how its results in the case where the standard DID approach works so that 
 you can contrast this with later scenarios where the standard approach fails.
 
-### Goodman Bacon Decomposition 
+## Goodman Bacon Decomposition 
 
 Before using the `bacon()` function, we need to create numeric-coded versions of
 some of the variables that are stored as characters: 
@@ -676,7 +690,7 @@ The results from the Goodman-Bacon Decomposition are reassuring and tell us we
 can trust the TWFE estimate. For pedagodgical purposes, we also calculate the 
 Group-Time ATT estimator using the `att_gt` function.
 
-### Group-Time ATT Estimator
+## Group-Time ATT Estimator
 
 Like `bacon()`, `att_gt()` requires all numeric variables. It also requires an
 argument called `gname`. `gname` expects a variable which encodes for each state
@@ -703,7 +717,7 @@ summary(m2_ag)
 Here, we see the ATT is equal to `r m2_ag$overall.att` as estimated by the TWFE 
 model.
 
-### Target Trial Estimator
+## Target Trial Estimator
 
 We can also calculate the estimate using the Target Trial Estimator introduced 
 by Ben-Michael, Feller, and Stuart. We employ slightly edited versions of the 
@@ -735,7 +749,7 @@ this scenario but the function to do so, `staggered_sa()`, throws an error
 when trying to estimate the standard error. Thus, we will show you how to use
 this function in the scenario that incorporates noise into the data.
 
-## Scenario 5 (4 states, staggered treatment timing)
+# Scenario 5 (4 states, staggered treatment timing)
 
 Scenario 5 introduces staggered timing. In this example, the treated states 
 introduce the policy at two different time points. The treatment effects are 
@@ -747,7 +761,7 @@ s5 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen5",
                               "date", "date"))
 ```
 
-### Visualization of Scenario 5
+## Visualization of Scenario 5
 
 ```{r, echo = F}
 
@@ -897,7 +911,7 @@ Since the causal effect equals 3 across all contrasts, and all contrasts are
 valid, this is the quantity that we want the TWFE and new estimators to estimate.
 
 
-### TWFE Regression Model
+## TWFE Regression Model
 
 ```{r}
 s5_mod <- lm(outcome ~  policy + state + factor(time), data = s5)
@@ -907,7 +921,7 @@ tidy(s5_mod)
 The coefficient of the policy term is `r s5_mod$coefficients["policy1"]`
 showing that the regression model estimates the ATT.
 
-### Goodman Bacon Decomposition
+## Goodman Bacon Decomposition
 
 Using the `bacon()`function, we can see see the four comparisons being made and
 the effect estimates for each comparison. The weight column in the output shows
@@ -931,7 +945,7 @@ We can also see a list of each comparison and its weight:
 s5_bacon
 ```
 
-### Group-Time ATT Estimator
+## Group-Time ATT Estimator
 
 For pedagogical purposes, we also show the estimate if we applied the Callaway 
 Sant’Anna estimator using the `att_gt()` function to estimate group-time ATTs.
@@ -945,6 +959,7 @@ s5_cs <- att_gt(yname = "outcome",
              control_group = "notyettreated",
              anticipation = 0)
 ```
+
 Note that I suppressed the warnings by using `warning=FALSE` in the R markdown
 chunk header for this specific chunk. This is because it prints more than 100
 lines of the same warning "## Warning in max(abs(b/bSigma), na.rm = TRUE): no non-missing arguments to max;
@@ -962,7 +977,7 @@ summary(s5_cs_ag)
 Here, we see the ATT is equal to `r s5_cs_ag$overall.att` as estimated by the 
 TWFE model.
 
-### Target Trial Estimator
+## Target Trial Estimator
 
 We can also calculate the estimate using the Target Trial Estimator. Here we use fit_event_jack_sum() because the effect is not hetergeneous.
 
@@ -979,14 +994,17 @@ s5_bm %<>% mutate(lb = estimate - 1.96*se,
 
 s5_bm
 ```
+
 This method also estimates an effect of 3, the true estimate, and the same as 
 the other estimators.
 
-**Takeaway:** When a policy's introduction is staggered in time and the treatment
+## Takeaway
+
+When a policy's introduction is staggered in time and the treatment
 effect is constant (not dynamic or heterogeneous), TWFE can be used to estimate
 the treatment effect.
 
-## Scenario 6 (4 states, staggered timing, dynamic effects)
+# Scenario 6 (4 states, staggered timing, dynamic effects)
 
 Scenario 6 is similar to Scenario 5 except now the treatment effect increases
 as time goes on, i.e., it is dynamic. The magnitude of the treatment effect is
@@ -998,7 +1016,7 @@ s6 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen6",
                               "date", "date"))
 ```
 
-### Visualization of Scenario 6
+## Visualization of Scenario 6
 
 ```{r, echo=F}
 s6 %<>% mutate(ever_trt = case_when(state %in% c(3, 4) ~ "treated", 
@@ -1158,7 +1176,7 @@ much weight each contrast contributes to the TWFE estimate.
 
 `r colorize("I think we will want to include an estimate of the truth here. This depends on what parameter we're interested in, but I think the average dynamic effect is the one that makes the most sense.", "blue")`
 
-### TWFE Regression Model
+## TWFE Regression Model
 
 ```{r}
 s6_mod <- lm(outcome ~ policy + state + factor(time), 
@@ -1170,7 +1188,7 @@ The coefficient of the policy term equals `r s6_mod$coefficients["policy1"] %>% 
 We can now use the Goodman Bacon decomposition to see how much weight each of the 
 contrasts contributes to the effect estimate:
 
-### Goodman Bacon Decomposition
+## Goodman Bacon Decomposition
 
 ```{r}
 s6 %<>% mutate(state_n = as.numeric(as.character(state)),
@@ -1187,6 +1205,7 @@ It is more helpful to view the four contrasts separately:
 ```{r}
 s6_bacon
 ```
+
 We can see that the estimates of the treatment effect for each contrast are as we
 calculated them earlier. Note that `r round(s6_bacon$weight[3]*100)`% of the 
 weight of the TWFE estimate is on Contrast 4 -- the one making the improper 
@@ -1205,7 +1224,7 @@ incorporates a contrast that we would not want to make in practice between an
 earlier treated and a later treated group. To overcome this, we use one of the 
 new estimators. Consider the Group-Time ATT to start.
 
-### Group-Time ATT Estimator
+## Group-Time ATT Estimator
 
 Like in the earlier examples we start by running the `att_gt()` function. Unlike
 before, we display the output from this step using `summary()`. This output 
@@ -1246,6 +1265,7 @@ periods post-treatment. Thus the weighted average is: $10.5\times(16/25) + 7\tim
 s6_cs_ag <- aggte(s6_cs, type="simple")
 summary(s6_cs_ag)
 ```
+
 Alternatively, we can specify `type = "group"` to get separate effect estimates 
 according to time of implementation. Note that `group` denotes the time of 
 the policy's introduction for the treated states.
@@ -1300,7 +1320,7 @@ summary(s6_cs_ag4)
 ggdid(s6_cs_ag4)
 ```
 
-### Target Trial Estimator
+## Target Trial Estimator
 
 We can also estimate the effects using the Target Trial estimator. This time, we
 start with the `fit_event_jack()` function which gives an estimate for each time
@@ -1348,7 +1368,7 @@ s6_bm2
 The aggregated effect estimate equals `r s6_bm2$estimate`, equivalent to the 
 Overall ATT from the Group-Time estimator when `type = "dynamic"`.
 
-### TWFE with `time_since_policy` specification
+## TWFE with `time_since_policy` specification
 
 But what if we model TWFE with the `time_since_change` indicators?
 
@@ -1364,7 +1384,9 @@ The regression model still works! The estimates from the policy indicator
 variables equal those estimated by the Group-Time estimator when specified using 
 `type = "dynamic"` and the Target Trial approach.
 
-**Takeway:** When the treatment effect is staggered and dynamic, you can still 
+## Summary
+
+When the treatment effect is staggered and dynamic, you can still 
 capture the effect estimate using a TWFE model so long as the policy effect is 
 modeled using the `time since treatment` variable. The key question for the 
 researcher is identifying the parameter of interest -- are you interested in 
@@ -1382,7 +1404,7 @@ consider estimating the effects separately by timing of introduction if that is
 sensible for the policy change under study (i.e., if there are only a few 
 separate time points), or estimating one overall summary parameter.
 
-## Scenario 7 (4 states, staggered timing, dynamic and hetergenous treatment effects)
+# Scenario 7 (4 states, staggered timing, dynamic and hetergenous treatment effects)
 
 Scenario 7 is like Scenario 6 except now the treatment effect is dynamic and
 heterogeneous. In this scenario, the state that implements the policy change 
@@ -1394,7 +1416,7 @@ s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7",
                               "date", "date"))
 ```
 
-### Visualization of Scenario 7
+## Visualization of Scenario 7
 
 ```{r, echo=F}
 
@@ -1458,7 +1480,6 @@ s7_DID4 <- bind_cols(s7_mean_5_11,
                      s7_mean_12_20 %>% select(-state)) %>%
   mutate(time_diff4 = mean_12_20 - mean_5_11)
 ```
-
 
 ```{r, echo = F, fig.height = 8, fig.width = 10}
 s7_comp1 <- ggplot(s7 %>% filter(state %in% c(1, 2, 3)), aes(x = time, y = outcome)) +   
@@ -1561,7 +1582,7 @@ in the comparison state -- because the control state is still experiencing a str
 This leads to a DID estimate for this group and time being relatively large, but
 negative, even though the true effect is to increase the outcome.
 
-### TWFE Regression Model
+## TWFE Regression Model
 
 Let's take a look at the regression output:
 
@@ -1585,7 +1606,7 @@ It isn't straightforward what the estimate should be when summarizing across
 several contrasts. Let's consider the Goodman Bacon decomposition to see how 
 much each comparison contributed to the TWFE estimate: 
 
-### Goodman Bacon Decomposition
+## Goodman Bacon Decomposition
 
 ```{r}
 s7 %<>% mutate(state_n = as.numeric(as.character(state)),
@@ -1617,7 +1638,7 @@ The TWFE estimator is influenced by the forbidden fourth contrast that doesn't
 meet the parallel trends assumption, so we'd like an estimator that doesn't
 suffer from this concern.
 
-### Group-Time ATT Estimator
+## Group-Time ATT Estimator
 
 Now that we know how to use the Callaway and Sant'Anna code, we can apply it to
 this example as well. Let's start by running the `att_gt()` function. This
@@ -1701,7 +1722,7 @@ summary(s7_cs_ag4)
 ggdid(s7_cs_ag4)
 ```
 
-### Target Trial Estimator
+## Target Trial Estimator
 
 `r colorize("CR write up this section", "red")`
 
@@ -1728,7 +1749,7 @@ ggplot(s7_bm_ave, aes(x = event_time, y = estimate)) +
   theme(legend.title=element_blank(), legend.position = "bottom")
 ```
 
-### TWFE with `time_since_policy` specification
+## TWFE with `time_since_policy` specification
 
 But what if we run the TWFE model with the `time_since_change` indicators? Here,
 I run the regression and `filter()` out the policy estimates for easy viewing 
@@ -1746,12 +1767,14 @@ from the two states for each time period. For this example, this specification
 gives estimates that are systematically lower than those produced by the Group-Time 
 estimator and the Target Trial estimator. 
 
-**Takeway:** When the treatment effect is staggered, dynamic, and heterogeneous, 
+## Summary
+
+When the treatment effect is staggered, dynamic, and heterogeneous, 
 the TWFE regression specification will produced biased results, as will the 
 specification using a categorical variable for time since treatment. In this 
 case, it is best to use one of the newer estimators. 
 
-## Scenario 8 (24 states, staggered timing, dynamic and hetergenous treatment effects)
+# Scenario 8 (24 states, staggered timing, dynamic and hetergenous treatment effects)
 
 So far, we have considered toy examples where the outcomes didn't incorporate 
 noise. This was great for getting started, but doesn't reflect the imprecision
@@ -1843,7 +1866,7 @@ states_4045 <- bind_rows(state40, state41, state42, state43, state44, state45)
 all_states <- bind_rows(states_1015, states_2025, states_3035, states_4045)
 ```
 
-### Visualization of Scenario 8
+## Visualization of Scenario 8
 
 ```{r, echo = F}
 all_states %<>% mutate(ever_trt = case_when(state > 25 ~ "treated", 
@@ -1909,7 +1932,9 @@ s8_comp3 <- ggplot(all_states %>% filter(state >= 30, time < 22), aes(x = time, 
 
 s8_comp1 + s8_comp2 + s8_comp3 + s8_comp4 + plot_layout(guides = "collect")
 ```
-We start by running the linear model as we've done previously:
+
+We start by running the linear model as we have done previously:
+
 ```{r}
 s8_mod <- lm(outcome ~ policy + factor(state) + factor(time), 
              data = all_states)
@@ -1931,7 +1956,6 @@ m2_var <- vcovHC(s8_mod)
 We can then pull out the variance from the `policy1` term from the 
 variance-covariance matrix and use it to compute Wald type confidence intervals:
 
-
 ```{r}
 est = summary(s8_mod)$coefficients["policy1", "Estimate"] 
 lb = summary(s8_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
@@ -1941,7 +1965,7 @@ ub = summary(s8_mod)$coefficients["policy1", "Estimate"] + 1.96*sqrt(m2_var["pol
 The estimated effect is `r round(est, 1)` with a 95% CI from `r sprintf("%.1f", round(lb, 1))`
 to `r round(ub, 1)`.
 
-### Goodman Bacon Decomposition
+## Goodman Bacon Decomposition
 
 We can use the Goodman Bacon decomposition to examine the contrasts contributing to the 
 TWFE estimate. 
@@ -1973,7 +1997,7 @@ later treated, with only 6% of the weight on the forbidden contrast. In the
 next section we will see how these weights change if pre-treatment time is 
 shortened.
 
-### Group-Time ATT Estimator
+## Group-Time ATT Estimator
 
 Compare to Callaway and Sant'Anna's approach:
 
@@ -1995,6 +2019,7 @@ lb = s8_cs_ag$overall.att - 1.96*s8_cs_ag$overall.se
 ub = s8_cs_ag$overall.att + 1.96*s8_cs_ag$overall.se
 round(c(s8_cs_ag$overall.att, lb, ub), 2)
 ```
+
 The CS estimate is `r s8_cs_ag$overall.att %>% round(2)` with 95% CI `r lb %>% round(2)` 
 to `r ub %>% round(2)`.
 
@@ -2035,8 +2060,7 @@ randomly distributed around the zero line. This is true in our example, so we
 wouldn't be concerned about violating the parallel trends assumption with these
 data. 
 
-
-### Cohort ATT Estimator
+## Cohort ATT Estimator
 
 Now we can also calculate effects using the Cohort ATT estimator. We couldn't 
 run this estimator for the other scenarios because the function throws an error 
@@ -2081,7 +2105,7 @@ For this example, the Group-Time estimates and Cohort ATT estimates are quite
 close and have overlapping confidence intervals. They're both higher than the 
 TWFE estimate because they do not use information based on the forbidden contrast.
 
-### Target Trial Estimator
+## Target Trial Estimator
 
 We can also consider the Target trial estimator.
 
@@ -2132,7 +2156,7 @@ ggplot(s8_bm_ave, aes(x = event_time, y = estimate)) +
   
 ```
 
-## Scenario 9 (same as previous but with less pre-exposure time)
+# Scenario 9 (same as previous but with less pre-exposure time)
 
 In this scenario, we use the same data from Scenario 8, except we limit the 
 pre-intervention point to 5 time units, rather than the 15 
@@ -2147,7 +2171,7 @@ We start by limiting the time frame to begin at time t=10 or larger:
 all_states2 <- all_states %>% filter(time >= 10)
 ```
 
-### Comparison of TWFE Estimates 
+## Comparison of TWFE Estimates 
 
 And then we re-run the model: 
 
@@ -2178,7 +2202,7 @@ to `r round(ub2, 1)`. Let's compare this with the estimate from Scenario 8:
 The estimate for Scenario 9 is much lower than that for Scenario
 8. 
 
-### Comparison of Goodman Bacon decomposition weights
+## Comparison of Goodman Bacon decomposition weights
 
 Let's see how the weights from the Bacon decomposition for Scenario 9 compare
 to Scenario 8. 
@@ -2227,7 +2251,7 @@ that introduced treatment at time point 22 because this becomes closer to the mi
 This weighting does not likely correspond to any weighting 
 that the researcher would choose. Concerning!
 
-### Comparison of Group-Time Estimates
+## Comparison of Group-Time Estimates
 
 Let's see how the other estimators are affected by this change:
 
@@ -2243,10 +2267,11 @@ s9_cs <- att_gt(yname = "outcome",
 s9_cs_ag <- aggte(s9_cs, type="simple")
 summary(s9_cs_ag)
 ```
-The Callaway Sant'Anna estimate of the ATT is the same as for Scenario 9 (with
-a slightly lower SE).
 
-### Comparison of Cohort ATT estimates
+The Callaway Sant'Anna estimate of the ATT is the same as for Scenario 9 (with
+a slightly lower standard error).
+
+## Comparison of Cohort ATT estimates
 
 What about the Cohort ATT estimate? 
 
@@ -2265,7 +2290,7 @@ round(c(s8_sa$estimate, s8_sa$estimate - 1.96*s8_sa$se_neyman, s8_sa$estimate + 
 
 Like the Group-Time ATT estimate, the Cohort ATT estimate stays exactly the same.
 
-### Comparison of the Target trial estimates
+## Comparison of the Target trial estimates
 
 Lastly, what happens to the Target Trail estimates? We compare them below:
 
@@ -2297,11 +2322,8 @@ s9_bm_hte
 
 The Target Trial estimates stay exactly the same as well.
 
-**Takeway:** The TWFE estimate is affected by the length of the panel. It places
+## Summary
+
+The TWFE estimate is affected by the length of the panel. It places
 more weight on contrasts that are closer to the middle of the panel. The 
 newer estimators do not have this issue. 
-
-
-
-
-
