@@ -1,5 +1,8 @@
 ---
 title: "Guide to DID estimators"
+author: 
+  - Corinne A. Riddell, University of California, Berkeley
+  - Dana E. Goin, University of California, San Francisco
 output:
   html_document:
     number_sections: yes
