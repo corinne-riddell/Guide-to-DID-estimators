@@ -29,8 +29,6 @@ colorize <- function(x, color) {
 library(r2symbols)
 ```
 
-`r colorize("TODO1: check with Dana that I am using the correct fit_event_jack functions across the different scenarios", "red")`
-
 # How to use this website
 
 ## Citations
@@ -40,9 +38,9 @@ the University of California, Berkeley (UC Berkeley) and San Francisco (UCSF),
 respectively. If you use this website to inform your research, please use the 
 following citations: 
 
-1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Pre-print. ADD LINK.
+1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Submitted. ADD LINK.
 
-2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health. Pre-print. ADD LINK.
+2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health. Submitted. ADD LINK.
 
 On this website we refer to new estimators and tools from the econometric 
 literature. If you use any of the new estimators or tools, you will also want to 
@@ -238,13 +236,10 @@ policy change.
 3) **No coincident other changes:** The policy is the only change introduced at 
 the specific time it is adopted that causally affects the outcome.
 
-`r colorize("How is 3) different from 1)? Seems like if something other than the policy changing affected the outcome the trends wouldn't be parallel", "blue")`
-
-`r colorize("It is saying that there is not other change in the treated group but not the control group at the exact moment the treatment is introduced -- like if there was two policies introduced at that moment but you are only considering one of them -- then the causal effect is due to both but you attribute it to just one thing", "red")`
-
 If you're familiar with causal inference theory, you will also know about the main 
 assumptions required when estimating causal effects. Ben-Michael et al. list 
-these in their paper, and we include them here for reference:
+these assumptions in [their paper](https://pubmed-ncbi-nlm-nih-gov.libproxy.berkeley.edu/34001754/), and we 
+include the assumptions here for reference:
 
 4) **Consistency:** There are no multiple versions of treatment that are unknown
 to the investigator. For example, if states introduced a texting ban while 
@@ -260,16 +255,14 @@ affect the outcomes of individuals in other states.
 
 6) **Exchangeability:** Had the treated states been untreated, they would have 
 experienced the trend in outcomes experienced by the untreated group. This 
-causal assumption is the same as the parallel trends assumption. `r colorize("[DANA DO YOU AGREE?]", "red")`
-`r colorize("Yes, although I think we should also say that the potential outcomes are independent of the treatment received.", "blue")`
+causal assumption is the same as the parallel trends assumption. 
 
 7) **Positivity:** Each state has a non-zero probability of being treated. 
 According to [Ben-Michael et al](https://pubmed-ncbi-nlm-nih-gov.libproxy.berkeley.edu/34001754/), this assumption is not required for standard DID
 models.
 
-8) **Correct model specification**: `r colorize("SOMETHING ABOUT LINEARITY? ALSO RELATED TO THE PARALLEL TRENDS ASSUMPTION", "red")`
-
-`r colorize("Do you think we need this if we have the rest of the assumptions? I'm trying to think what this covers that isn't already listed and can't think of anything", "blue")`
+8) **Correct model specification**: The parametric model accurately represents
+the underlying causal model. 
 
 ## Two-way fixed effects (TWFE) regression model
 
@@ -713,11 +706,14 @@ Group-Time ATT estimator using the `att_gt` function.
 Like `bacon()`, `att_gt()` requires all numeric variables. It also requires an
 argument called `gname`. `gname` expects a variable which encodes for each state
 the time of first policy change. For never-treated state 1, this variable 
-equals 0 and for treated states 2-4 this variable equals 6. 
-
-`r colorize("Is there a reason why you used notyettreated rather than nevertreated for the control group here?", "blue")`
-
-`r colorize("there is an error when try to use nevertreated: Error in pre_process_did... never treated group is too small, try setting control_group to notyettreated", "purple")`
+equals 0 and for treated states 2-4 this variable equals 6. Another important
+argument in the function is `control_group` which you can set to "nevertreated"
+or "notyettreated". When specifying "control_group=nevertreated", only states 
+that never receive the policy change are used as control states. When specifying "control_group=notyettreated", the control group expands to include states that
+have not yet received treatment at the time of the policy's introduction. In
+this guide, we use "notyetreated" as the control group since these states satisfy
+the parallel trends assumption and including them would increase statistical 
+precision (if there were noise in the estimates).
 
 ```{r, warning=F}
 s4_cs <- att_gt(yname = "outcome", 
@@ -1035,7 +1031,9 @@ as time goes on, i.e., it is dynamic. The magnitude of the treatment effect is
 the same for both treated groups.
 
 ```{r}
-s6 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen6", 
+# here we also specify the range of the data to be read into R because we don't
+# want to include other information included in this sheet
+s6 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen6", range = "A1:H81",
                 col_types = c("text", "numeric", "text", "numeric", "text", "numeric",
                               "date", "date"))
 ```
@@ -1198,23 +1196,18 @@ contributes to the TWFE regression estimate. To see this, we first calculate the
 TWFE regression estimate and then use the Goodman Bacon decomposition to see how 
 much weight each contrast contributes to the TWFE estimate. 
 
-## True causal effect
+## Calculation of summary measures of the causal effect
 
 In the previous scenarios, it has been relatively straightforward to identify 
 the true causal effect that we would like to estimate. With dynamic effects, 
 there are a few possibilities:
 
 1. **Time-specific dynamic effects**: Calculate the causal effect of the policy at 
-each time post-policy change. Take the average across all treated states, with one average
-calculated for each time point. The causal effect of the policy at the time of 
-first introduction is 3. This was calculated by noting that the outcome increased
-by 3 units between successive periods pre-policy change in the treated states
-and control states. At the time the policy was introduced the outcome increased by 
-6 in the treated states vs. 3 in control states, for a policy effect of 6-3=3. 
-In the following period (time since treatment = 2), the causal effect of the policy 
-change was 4, by a calculation of the same form. As time goes on, the effect of 
-the policy change increases by one in each successive period. This table 
-summarizes the causal effect over time since treatment:
+each time post-policy change. To see how these are calculated, see columns I and 
+J in the "scen6" sheet of the Excel spreadsheet containing the imported data. 
+Column J corresponds to the difference between the observed outcome (after
+the policy change) and the counterfactual outcome had the treated state not been
+treated.  This table summarizes the causal effect over time since treatment:
 
 |Time since policy change   | Causal effect of the policy  |
 |:-------------------------:|:----------------------------:|
@@ -1229,11 +1222,22 @@ across the two treated states). When estimating the effects dynamically, these
 are the time-since-treatment-specific parameters we aim to estimate.
 
 2. **The average dynamic effect**: You may prefer a summary estimate, that  
-aggregates across all post-treatment time into one number. In this case, we can 
-take the average of the causal effects across all the time points:
+aggregates across all post-treatment time into one number. Two possible ways to 
+summarize into one number are as follows:
+
+2.i) **Simple average of the dynamic effect**: Take the average of the causal 
+   effects across all the time points:
 
 $$\frac{ATT_{t=1} + ATT_{t=2} + ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{3 + 4 + ... + 18}{16} = \frac{168}{16} = 10.5$$
 
+2.ii) **Weighted average of the dynamic effect**: Take a weighted average of 
+   the causal effects, where the weights correspond to the number of units 
+   treated at each time point:
+   
+   $$\frac{2\times{ATT_{t=1}} +2\times{ATT_{t=2}} + ... + 2\times{ATT_{t=9} + ATT_{t=10} + ... ATT_{t=16}}}{\text{Total number of state-time points}}$$
+   
+   $$\frac{2\times(3+4+...+11) + (12+13+...+18)}{25} = 9.24$$
+   
 ## TWFE Regression Model
 
 ```{r}
@@ -1317,6 +1321,8 @@ average, where the weights correspond to each adoption cohort's time spent in
 the post-treatment period. For contrast 1, there are 16 time periods post 
 treatment and for contrast 2, there are 9 periods post-treatment. Thus the 
 weighted average is: $10.5\times(16/25) + 7\times(9/25)=$ `r 10.5*(16/25) + 7*(9/25)`.
+Note that this corresponds to the weighted average dynamic effect calculated in 
+Section 8.2 above.
 
 ```{r}
 #aggregate the group time average treatment effects
@@ -1353,8 +1359,8 @@ summary(s6_cs_ag3)
 
 Again, the Overall ATT effect estimate is different from the other two. Here, it 
 is a simple average of all effects in the post-treatment time. This is equal to 
-$(3 + 4 + ... + 18)/16 = 10.5$. Note that this equals the average dynamic effect
-that we were aiming to estimate.
+$(3 + 4 + ... + 18)/16 = 10.5$. Note that this corresponds to the simple average
+dynamic effect calculated in Section 8.2 above.
 
 If you are more interested in the dynamic effect over time, it is  helpful to 
 plot the estimates using the `ggdid()` function:
@@ -1456,8 +1462,6 @@ researcher is to identify the parameter of interest -- are you interested in
 estimating a dynamic effect, or does a parameter that summarizes over treatment
 time make sense? 
 
-`r colorize("I added the recommendation below. Do you like it here?", "red")`
-
 **Recommendation:** When there are multiple time periods, start by 
 estimating a dynamic effect to see if the model supports its presence (i.e., 
 does the effect change over time or is it constant?). If the effect appears 
@@ -1467,14 +1471,14 @@ consider estimating the effects separately by timing of introduction if that is
 sensible for the policy change under study (i.e., if there are only a few 
 separate time points), or estimating one overall summary parameter.
 
-# Scenario 7 (4 states, staggered timing, dynamic and hetergenous treatment effects)
+# Scenario 7 (4 states, staggered timing, dynamic and heterogeneous treatment effects)
 
 Scenario 7 is like Scenario 6 except now the treatment effect is dynamic and
 heterogeneous. In this scenario, the state that implements the policy change 
 first has a stronger treatment effect (i.e., a steeper change in slope).
 
 ```{r}
-s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7", 
+s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7", range = "A1:H81", 
                 col_types = c("text", "numeric", "text", "numeric", "text", "numeric",
                               "date", "date"))
 ```
@@ -1643,9 +1647,14 @@ in the comparison state -- because the control state is still experiencing a str
 This leads to a DID estimate for this group and time being relatively large, but
 negative, even though the true effect is to increase the outcome.
 
-## True causal effect 
+## Calculation of summary measures of the causal effect 
 
-1. **Time-specific dynamic effects**
+1. **Time-specific dynamic effects**: To see how these are calculated, see 
+columns I and J in the “scen7” sheet of the Excel spreadsheet containing the 
+imported data. Column J corresponds to the difference between the observed 
+outcome (after the policy change) and the counterfactual outcome had the treated
+state not been treated. This table summarizes the causal effect over time since 
+treatment separately for each treated state:
 
 |Time since policy change   | Causal effect of the policy in earlier treated  | Causal effect of the policy in later treated  | Time-specific ATT |
 |:-------------------------:|:----------------------------:|:----------------------------:| :------------------:|
@@ -1660,14 +1669,32 @@ negative, even though the true effect is to increase the outcome.
 |16                         | 33   | -       | 33    |
 
 Here, the earlier- and later- treated states had different ATTs. So, we take
-their average at each time point in the last column. When estimating the effects 
-dynamically, these are the time-since-treatment-specific parameters we aim to estimate.
+their average at each time point in the last column. In times 10 or larger, 
+there is only one treated state, so the average is equal to that one state's 
+causal effect. When estimating the effects dynamically, these are the time-since-treatment-specific parameters we aim to estimate.
 
-2. **The average dynamic effect**: You may prefer a summary estimate that aggregates
-across all post-treatment time into one number. In this case, we can take the
-average of the causal effects across all the time points:
+2. **The average effect**: You may prefer a summary estimate that 
+aggregates across all post-treatment time into one number. In scenario 6 we 
+outlined two ways to summarize the estimate. Here we add a third way that can 
+be used when the effect is heterogeneous by state.
+
+2.i) **Simple average of the dynamic effect**: Take the average of the causal 
+effects across all the time points:
 
 $$\frac{ATT_{t=1} + ATT_{t=2} + ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{2 + 3.5 + ... + 33}{16} = \frac{261}{16} = 16.3125$$
+
+2.ii) **Weighted average of the dynamic effects**: Take a weighted average of the 
+causal effects, where the weights correspond to the number of units treated at
+each time point:
+
+$$\frac{2\times ATT_{t=1} + 2\times ATT_{t=2} + ... + 2 \times ATT_{t=9} + ATT_{t=10} + ... + ATT_{t=16}}{\text{Number of post-treatment times}}$$
+
+$$\frac{2 \times (2 + 3.5 + ... + 14) + (21 + 23 ... + 33)}{25} = 13.32$$
+
+2.iii) **Simple average of the average heterogeneous effects**: Take a simple 
+average of the heterogeneous treatment effects:
+
+$$\frac{ATT_{\text{3 vs 1,2}} + ATT_{\text{4 vs 1,2}}}{2} = \frac{18 + 5}{2} = 11.5$$
 
 ## TWFE Regression Model
 
@@ -1745,7 +1772,8 @@ considers only the clean contrasts of 1 and 2 and combines them by weighting by
 the total time in the post-treatment period. For contrast 1, there are 16 
 time periods post treatment and for contrast 2, there are 9 periods 
 post-treatment. Thus this estimate is the weighted average: 
-$18\times(16/25) + 5\times(9/25)=$ `r 18*(16/25) + 5*(9/25)` 
+$18\times(16/25) + 5\times(9/25)=$ `r 18*(16/25) + 5*(9/25)` . Note that this 
+is equal to the weighted average of the dynamic effects calculated in Section 9.2.
 
 ```{r}
 #aggregate the group time average treatment effects
@@ -1763,7 +1791,8 @@ s7_cs_ag2 <- aggte(s7_cs, type = "group")
 summary(s7_cs_ag2)
 ```
 
-[Note here that the Overall ATT is a simple average of the two groups (e.g., (18 + 5)/2 = 11.5)]
+Note here that the Overall ATT is a simple average of the two groups (e.g., (18 + 5)/2 = 11.5), 
+equal to the simple average of the heterogeneous effects calulated in Section 9.2.
 
 Alternatively, you can estimate the dynamic effect separately for each time 
 since the treatment has been introduced. Remember that this effect estimation
@@ -1775,8 +1804,9 @@ s7_cs_ag3 <- aggte(s7_cs, type="dynamic")
 summary(s7_cs_ag3)
 ```
 
-(Note here that the Overall ATT is a simple average of all effects in the post-treatment 
-time. This is equal to (2 + 3.5 + 5 + 6.5 + ... + 33)/16=16.31)
+Note here that the Overall ATT is a simple average of all effects in the post-treatment 
+time. This is equal to (2 + 3.5 + 5 + 6.5 + ... + 33)/16=16.31, which we also 
+calculated in Section 9.2
 
 Because the treatment effect is heterogeneous (the later treated state
 has a smaller treatment effect than the earlier treated state) and because there
@@ -1832,9 +1862,6 @@ ggplot(s7_bm_ave, aes(x = event_time, y = estimate)) +
   scale_color_discrete(labels=c('pre', 'post')) +
   theme(legend.title=element_blank(), legend.position = "bottom")
 ```
-
-
-`r colorize("Dana can you read over about the fit_ functions below and see what you think?", "red")`
 
 To get one summary estimate across time points we use the `fit_event_jack_sum()`
 function because the effects are dynamic across adoption cohorts:
