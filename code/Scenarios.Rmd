@@ -264,6 +264,11 @@ models.
 8) **Correct model specification**: The parametric model accurately represents
 the underlying causal model. 
 
+Lastly, [Athens and Imbens](
+https://doi.org/10.1016/j.jeconom.2020.10.012) outline assumptions required for the standard DID 
+estimator to be an unbiased estimator of a certain weighted average causal 
+effect, including random assignment of the policy's introduction date.
+
 ## Two-way fixed effects (TWFE) regression model
 
 Under the canonical TWFE design, we can estimate the policy effect by including
