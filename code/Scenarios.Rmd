@@ -578,7 +578,7 @@ TWFE regression when the effect is constant or dynamic. Using a "time since
 treatment" indicator will estimate effects separately by time since the policy 
 change, allowing you to see how the effect has changed over time.
 
-# Scenario 4 (4 states, hetergenous treatment effects)
+# Scenario 4 (4 states, heterogeneous treatment effects)
 
 Scenario 4 extends Scenario 3 to the multiple group setting. State 1 is 
 never-treated, while states 2-4 undergo treatment at time=6. The effects are 
