@@ -38,9 +38,9 @@ the University of California, Berkeley (UC Berkeley) and San Francisco (UCSF),
 respectively. If you use this website to inform your research, please use the 
 following citations: 
 
-1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Submitted. ADD LINK.
+1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Submitted to *Epidemiology*. ADD LINK.
 
-2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health. Submitted. ADD LINK.
+2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health [Letter to the Editor]. Submitted to *Epidemiology*. ADD LINK.
 
 On this website we refer to new estimators and tools from the econometric 
 literature. If you use any of the new estimators or tools, you will also want to 
@@ -112,19 +112,10 @@ and choosing the Guide-to-DID-estimators project.
 First, load the packages for reading and plotting the data. The packages `bacondecomp`,  
 `did`, and `staggered` are specific to DID analyses. 
 
-```{r, echo = F}
-# set path
-riddellPath <- c( "/data/riddell//R/x86_64-pc-linux-gnu-library/4.1/" , .libPaths() )
-.libPaths(riddellPath)
-```
-
 ```{r load-libraries, warning=F, message=F}
 # you will need to install these packages if you don't have them already
 # install.packages(c("here", "readxl", "tidyverse", "patchwork", "magrittr", 
-# "broom", "ggrepel", "lubridate", "bacondecomp", "staggered", "devtools"))
-# devtools::install_github("bcallaway11/did") 
-# as of July 11, 2022, package `did` is currently unavailable on CRAN, so you 
-# need to install the developer version from GitHub, using the code above.
+# "broom", "ggrepel", "lubridate", "bacondecomp", "staggered", "did"))
 # You may also need to download the developer version of `DRDID` before if you
 # get an error. To do so use: 
 # devtools::install_github("pedrohcgs/DRDID")
@@ -162,7 +153,7 @@ Dana Goin made to aggregate the estimates under different settings.
 Since the packages used for these analyses are relatively new, we anticipate 
 them to change over time and that these changes may affect the readers ability 
 to reproduce the results. For these analyses we used `bacondecomp` version 0.1.1, 
-`staggered` version 1.1 and `did` version 2.2.0.901. If your results differ or you 
+`staggered` version 1.1 and `did` version 2.1.2. If your results differ or you 
 get an error running any of the code that uses functions from those packages, 
 then it may be because you are using different versions of the packages.
 
