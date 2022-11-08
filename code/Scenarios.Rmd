@@ -1224,7 +1224,7 @@ summarize into one number are as follows:
 2.i) **Simple average of the dynamic effect**: Take the average of the causal 
    effects across all the time points:
 
-$$\frac{ATT_{t=1} + ATT_{t=2} + ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{3 + 4 + ... + 18}{16} = \frac{168}{16} = 10.5$$
+$$\frac{ATT_{t=1} + ATT_{t=2} +...+ ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{3 + 4 + ... + 18}{16} = \frac{168}{16} = 10.5$$
 
 2.ii) **Weighted average of the dynamic effect**: Take a weighted average of 
    the causal effects, where the weights correspond to the number of units 
@@ -1367,7 +1367,7 @@ ggdid(s6_cs_ag3)
 
 Lastly, you can use `type = "calendar"` to aggregate the effects over calendar
 time. Epidemiologically, this doesn't make a lot of sense with dynamic effects
-because it is mixing effect estimates across difference times since treatment
+because it is mixing effect estimates across different times since treatment
 was introduced. In some cases, only one comparison is contributing to the estimation
 (e.g., in calendar time periods where only one group has introduced the treatment), 
 while at other points, two comparisons contribute. But this "knowledge" is lost
