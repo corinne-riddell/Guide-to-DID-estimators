@@ -34,14 +34,14 @@ library(r2symbols)
 library(emo)
 ```
 
-# Scenario 7 (4 states, staggered timing, hetergeneous effects)
+# Scenario 7 (4 states, staggered timing, heterogeneous effects)
 
 Scenario 7 is similar to Scenario 5 except now the treatment effect is different for the two treated states, i.e., it is heterogeneous. 
 
 ```{r}
 # here we also specify the range of the data to be read into R because we don't
 # want to include other information included in this sheet
-s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen9", range = "A1:H81",
+s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7", range = "A1:H81",
                 col_types = c("text", "numeric", "text", "numeric", "text", "numeric",
                               "date", "date"))
 ```
