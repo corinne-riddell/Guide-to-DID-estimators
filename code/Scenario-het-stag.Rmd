@@ -25,12 +25,13 @@ colorize <- function(x, color) {
   if (knitr::is_latex_output()) {
     sprintf("\\textcolor{%s}{%s}", color, x)
   } else if (knitr::is_html_output()) {
-    sprintf("<span style='color: %s;'>%s</span>", color,
+    sprintf("<b><span style='color: %s;'>%s</span></b>", color,
       x)
   } else x
 }
 
 library(r2symbols)
+library(emo)
 ```
 
 # Scenario 7 (4 states, staggered timing, hetergeneous effects)
@@ -204,25 +205,43 @@ is a question of how to aggregate the causal effect estimates across multiple
 treated units into one estimate. Here are three causal effects that could be 
 calculated:
 
-* **Causal Effect A:** Take an average of the estimated effects across the treated units: 
+```{r echo=F}
+blue_hex <- "#2885C2"
+orange_hex <- "#fcba03"
+green_hex <- "#28C269"
+```
+
+
+`r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` 
+
+Take an average of the estimated effects across the treated units: 
 
 $\frac{\text{Number in adoption cohort 1}}{\text{Number of treated units}} \times ATT_{adoption cohort 1} + \frac{\text{Number in adoption cohort 2}}{\text{Number of treated units}} \times ATT_{adoption cohort 2}$
 
 $\frac{1}{2} \times 6 + \frac{1}{2} \times 4 = 5$
+<br>
+<br>
 
-* **Causal Effect B:** Take an average of the effects across all post-treatment
-time points:
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` 
+
+Take an average of the effects across all post-treatment time points:
 
 $\frac{ATT_{t=1} + ATT_{t=2} + ... + ATT_{t=16}}{\text{Number of posttreatment times}}$
 
 $\frac{[5\times9] +[6\times7]}{16}=5.43$
+<br>
+<br>
 
-* **Causal Effect C:** Take a weighted average of the post-treatment-time-specific 
-effects, where the weights correspond to the number of units treated at each time point:
+`r emo::ji("green_book")` `r colorize("Causal Effect B", green_hex)` 
+
+Take a weighted average of the post-treatment-time-specific effects, where the 
+weights correspond to the number of units treated at each time point:
 
    $\frac{2\times{[ATT_{t=1}} +{ATT_{t=2}} + ... + {ATT_{t=9}] + 1\times[{ATT_{t=10} + ... +ATT_{t=16}}}]}{\text{Total number of state-time points}}$
    
    $\frac{2\times(5+5+...+5) + 1\times{(6+...+6)}}{25} = 5.28$
+<br>
+<br>
    
 Each of these causal effects are valid measures to calculate and all come with 
 strengths and weaknesses. The researcher needs to decide which one to calculate.
@@ -237,7 +256,7 @@ tidy(s7_mod)
 ```
 
 The coefficient of the policy term equals `r s7_mod$coefficients["policy1"] %>% round(2)`.
-This is smaller than any of **Causal Effect A**, **Causal Effect B**, or **Causal Effect C**.
+This is smaller than any of `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` , `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` , or `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`.
 To see how the TWFE came to be this number, we use the Goodman Bacon 
 decomposition to see how much weight each of the contrasts contributes to the 
 effect estimate.
@@ -294,7 +313,7 @@ average, where the weights correspond to each adoption cohort's time spent in
 the post-treatment period. For contrast 1, there are 16 time periods post 
 treatment and for contrast 2, there are 9 periods post-treatment. Thus the 
 weighted average is: $6\times(16/25) + 4\times(9/25)=$ `r 6*(16/25) + 4*(9/25)`.
-This is the same as **Causal Effect C** calculated above.
+This is the same as `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)` calculated above.
 
 ```{r}
 #aggregate the group time average treatment effects
@@ -316,11 +335,11 @@ summary(s7_cs_ag2)
 The output also displays an estimate of the Overall ATT, equal to `r s7_cs_ag2$overall.att`.
 This estimate is different from the one estimated `where type = "simple"`. Here,
 the estimate is a weighted average, with weights proportional to the number of 
-units in each adoption cohort (e.g., $(1/2)\times 6 + (1/2) \times 4=$ `r s7_cs_ag2$overall.att`). This is equal to **Causal Effect A** calculated above.
+units in each adoption cohort (e.g., $(1/2)\times 6 + (1/2) \times 4=$ `r s7_cs_ag2$overall.att`). This is equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` calculated above.
 
 Alternatively, we can specific `type = "dynamic"` to get separate effect estimates
 for each time period. We can also see that the Overall ATT from this call is 
-equal to **Causal Effect B** calculated above.
+equal to `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` calculated above.
 
 ```{r}
 s7_cs_ag2 <- aggte(s7_cs, type = "dynamic")
@@ -329,7 +348,7 @@ summary(s7_cs_ag2)
 
 ## Target Trial Estimator
 
-`r colorize("Dana, need help choosing which fit_event_* function to use for this one", "green")`
+`r colorize("Dana, need help choosing which fit_event_* function to use for this one", "red")`
 
 We can also estimate the effects using the Target Trial estimator. This time, we
 start with the `fit_event_jack()` function which gives an estimate for each time
@@ -391,26 +410,21 @@ s7_bm3$estimate
 ```
 
 The aggregated effect estimate equals `r s7_bm2$estimate`, equivalent to the 
-**Causal Effect B**.
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`.
 
 ## Summary
 
 When the treatment effect is staggered and heterogeneous, the TWFE estimate aggregates
 the heterogeneous effects using weights that are calculated by the model and
-not concordant with weights researchers would intuitively choose. In this setting,
-it seems sensible to estimate a separate effect for each adoption cohort, or to 
-aggregate the estimates using one of the weighting schemes outlined in Section 
-X.X.
+not concordant with weights researchers would intuitively choose. In this 
+example, this led to an effect estimate that was lower than the three causal 
+effect estimates we aimed to estimate. Thus, TWFE performs unfavorably when 
+effects are heterogeneous across adoption cohorts. 
 
-`r colorize("stopped here", "green")`
-
-`r colorize("stopped here", "need to add sun abraham")`
-
-**Recommendation:** When there are multiple time periods, start by 
-estimating a dynamic effect to see if the model supports its presence (i.e., 
-does the effect change over time or is it constant?). If the effect appears 
-dynamic, this is important because it is indicative of how the policy operates 
-after being rolled out. If there is no strong support for a dynamic effect, then
-consider estimating the effects separately by timing of introduction if that is 
-sensible for the policy change under study (i.e., if there are only a few 
-separate time points), or estimating one overall summary parameter.
+**Recommendation:** Use the `aggte()` function with `type = "group"` to estimate 
+effects separately for each adoption cohort alongside confidence intervals. Examine
+the difference in effects across adoption cohorts and their associated precision, 
+remembering that the number of units contributing to each adoption cohort will
+affect the width of its confidence interval, which may make it difficult to make
+conclusive statements about heterogeneity across adoption cohorts in the presence
+of limited data. 
