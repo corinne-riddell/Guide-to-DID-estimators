@@ -1489,6 +1489,402 @@ consider estimating the effects separately by timing of introduction if that is
 sensible for the policy change under study (i.e., if there are only a few 
 separate time points), or estimating one overall summary parameter.
 
+# Scenario 7 (4 states, staggered timing, heterogeneous effects)
+
+Scenario 7 is similar to Scenario 5 except now the treatment effect is different for the two treated states, i.e., it is heterogeneous. 
+
+```{r}
+# here we also specify the range of the data to be read into R because we don't
+# want to include other information included in this sheet
+s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7", range = "A1:H81",
+                col_types = c("text", "numeric", "text", "numeric", "text", "numeric",
+                              "date", "date"))
+```
+
+## Visualization of Scenario 7
+
+```{r, echo=F}
+s7 %<>% mutate(ever_trt = case_when(state %in% c(3, 4) ~ "treated", 
+                                    state %in% c(1, 2) ~ "untreated"))
+ggplot(s7, aes(x = time, y = outcome)) + 
+  geom_line(aes(col = factor(state))) + 
+  geom_point(aes(fill = factor(state), pch = ever_trt)) + 
+  labs(title = "Scenario 7 (Hetergeneous)") +
+  geom_vline(aes(xintercept = 4.5), lty = 2, col = "#005a32") + 
+  geom_vline(aes(xintercept = 11.5), lty = 2, col = "#99000d") +
+  scale_fill_manual(values = c("#a6cee3","#1f78b4","#005a32", "#99000d")) +
+  scale_color_manual(values = c("#a6cee3","#1f78b4","#005a32", "#99000d")) +
+  scale_shape_manual(values = c(23, 21)) + 
+  theme_bw()
+
+```
+
+**Visualization of all comparisons made by TWFE regression**
+
+```{r, echo=F}
+s7_mean_1_4 <- s7 %>% filter(time < 5) %>%
+  group_by(state) %>%
+  summarise(mean_1_4 = mean(outcome))
+
+s7_mean_5_20 <- s7 %>% filter(time >= 5) %>%
+  group_by(state) %>%
+  summarise(mean_5_20 = mean(outcome))
+
+s7_DID1 <- bind_cols(s7_mean_1_4, s7_mean_5_20 %>% select(-state)) %>%
+  mutate(time_diff = mean_5_20 - mean_1_4)
+
+
+s7_mean_1_11 <- s7 %>% filter(time < 12) %>%
+  group_by(state) %>%
+  summarise(mean_1_11 = mean(outcome))
+
+s7_mean_12_20 <- s7 %>% filter(time >= 12) %>%
+  group_by(state) %>%
+  summarise(mean_12_20 = mean(outcome))
+
+s7_DID2 <- bind_cols(s7_mean_1_11, 
+                     s7_mean_12_20 %>% select(-state)) %>%
+  mutate(time_diff2 = mean_12_20 - mean_1_11)
+
+s7_mean_5_11 <- s7 %>% filter(time >= 5 & time < 12) %>%
+  group_by(state) %>%
+  summarise(mean_5_11 = mean(outcome))
+
+s7_DID3 <- bind_cols(s7_mean_1_4, 
+                     s7_mean_5_11 %>% select(-state)) %>%
+  mutate(time_diff3 = mean_5_11 - mean_1_4)
+
+s7_DID4 <- bind_cols(s7_mean_5_11, 
+                     s7_mean_12_20 %>% select(-state)) %>%
+  mutate(time_diff4 = mean_12_20 - mean_5_11)
+```
+
+```{r, echo = F, fig.height = 8, fig.width = 10}
+s7_comp1 <- ggplot(s7 %>% filter(state %in% c(1, 2, 3)), aes(x = time, y = outcome)) + 
+  geom_line(aes(col = factor(state))) + 
+  geom_point(aes(fill = factor(state), pch = ever_trt)) + labs(title = "A) Contrast 1 (Treated vs. never-treated)") +
+  geom_vline(aes(xintercept = 4.5), lty = 2) +
+  scale_color_manual(values = c("#a6cee3","#1f78b4","#005a32")) +
+  scale_fill_manual(values = c("#a6cee3","#1f78b4","#005a32")) +
+  theme_bw() + 
+  scale_x_continuous(limits = c(1, 20)) +
+  scale_shape_manual(values = c(23, 21)) + 
+  geom_label_repel(data = s7_DID1 %>% filter(state %in% c(1,2,3)), 
+                  aes(y = mean_1_4, x = 2.5, label = paste("mean_y:", mean_1_4), col = state), show.legend = F) +
+  geom_label_repel(data = s7_DID1 %>% filter(state %in% c(1,2,3)), 
+                  aes(y = mean_5_20, x = 12.5, label = paste("mean_y:", mean_5_20), col = state), show.legend = F)
+ 
+s7_comp2 <- ggplot(s7 %>% filter(state %in% c(1, 2, 4)), aes(x = time, y = outcome)) + 
+  geom_line(aes(col = factor(state))) +
+  geom_point(aes(fill = factor(state),  pch = ever_trt)) + labs(title = "B) Contrast 2 (Treated vs. never-treated)") +
+  geom_vline(aes(xintercept = 11.5), lty = 2) +
+  scale_color_manual(values = c("#a6cee3","#1f78b4","#99000d")) +
+  scale_fill_manual(values = c("#a6cee3","#1f78b4","#99000d")) +
+  theme_bw()+ 
+  scale_x_continuous(limits = c(1, 20)) +
+  scale_shape_manual(values = c(23, 21)) + 
+  geom_label_repel(data = s7_DID2 %>% filter(state %in% c(1,2,4)), 
+                   aes(y = mean_1_11, x = 6, label = paste("mean_y:", mean_1_11), col = state), show.legend = F) +
+  geom_label_repel(data = s7_DID2 %>% filter(state %in% c(1,2,4)), 
+                   aes(y = mean_12_20, x = 16, label = paste("mean_y:", mean_12_20), col = state), show.legend = F)
+
+s7_comp4 <- ggplot(s7 %>% filter(state %in% c(3, 4), time >= 5), aes(x = time, y = outcome)) +  
+  geom_line(aes(col = factor(state))) + 
+  geom_point(aes(fill = factor(state), pch = ever_trt)) + labs(title = "C) Contrast 4 (Later vs. earlier-treated)") +
+  geom_vline(aes(xintercept = 11.5), lty = 2) +
+  scale_color_manual(values = c("#005a32", "#99000d")) +
+  scale_fill_manual(values = c("#005a32", "#99000d")) +
+  scale_shape_manual(values = c(23)) + 
+  theme_bw()+ 
+  scale_x_continuous(limits = c(1, 20)) +
+  geom_label_repel(data = s7_DID4 %>% filter(state %in% c(3,4)), 
+                   aes(y = mean_5_11, x = 8, label = paste("mean_y:", mean_5_11), col = state), show.legend = F) +
+  geom_label_repel(data = s7_DID4 %>% filter(state %in% c(3,4)), 
+                   aes(y = mean_12_20, x = 16, label = paste("mean_y:", mean_12_20), col = state), show.legend = F)
+
+s7_comp3 <- ggplot(s7 %>% filter(state %in% c(3, 4), time < 12), aes(x = time, y = outcome)) +   
+  geom_line(aes(col = factor(state))) + 
+  geom_point(aes(fill = factor(state), pch = ever_trt)) + labs(title = "D) Contrast 3 (Earlier vs. later-treated)") +
+  geom_vline(aes(xintercept = 4.5), lty = 2) +
+  scale_color_manual(values = c("#005a32", "#99000d")) +
+  scale_fill_manual(values = c("#005a32", "#99000d")) +
+  scale_shape_manual(values = c(23)) + 
+  theme_bw()+ 
+  scale_x_continuous(limits = c(1, 20)) +
+  geom_label_repel(data = s7_DID3 %>% filter(state %in% c(3,4)), 
+                   aes(y = mean_1_4, x = 2.5, label = paste("mean_y:", mean_1_4), col = state), show.legend = F) +
+  geom_label_repel(data = s7_DID3 %>% filter(state %in% c(3,4)), 
+                   aes(y = mean_5_11, x = 8, label = paste("mean_y:", mean_5_11), col = state), show.legend = F)
+
+s7_comp1 + s7_comp2 + s7_comp3 + s7_comp4 + plot_layout(guides = "collect")
+```
+
+**Contrast 1:**
+
+* Pre-post difference for never-treated state 1 is: 43.5-13.5=30
+* Pre-post difference for never-treated state 2 is: 44.5-14.5=30
+* Implying the average pre-post difference equals 30 for the never-treated states
+* Pre-post difference for treated state 3 is 52.5-16.5 = 36
+* $DID_{3 vs 1,2} = 36-30 = 6$
+
+**Contrast 2:**
+
+* Pre-post difference for never-treated state 1 is: 54-24=30
+* Pre-post difference for never-treated state 2 is: 55-25=30
+* Implying the average pre-post difference equals 30 for the never-treated states
+* Pre-post difference for treated state 4 is 67-33= 34
+* $DID_{4 vs 1,2} = 34-30 = 4$
+
+**Contrast 3:**
+
+* Pre-post difference for later-treated state 4 is: 39-22.5=16.5
+* Pre-post difference for earlier-treated state 3 is: 39-16.5=22.5
+* $DID_{3 vs 4} = 22.5-16.5 = 6$
+
+**Contrast 4:**
+
+* Pre-post difference for earlier-treated state 3 is: 63-39=24
+* Pre-post difference for later-treated state 4 is: 67-39=28
+* $DID_{4 vs 3} = 28-24 = 4$
+
+Contrasts 1 and 2 are definitely okay because they are clean comparisons between never-treated and treated states. Contrasts 3 and 4 are trickier, however, we can see from the diagram that parallel trends is still satisfied. So, even though 
+the model uses a previously treated state as a control, this is okay because the causal effect of the treatment was heterogeneous and does not lead to a violation of the parallel trends assumption. Thus, we are comfortable with all contrasts 
+contributing to the TWFE regression estimate. To see how much weight is put on 
+each one, we use the Goodman Bacon decomposition, but first we consider the 
+different causal effects that can be calculated.
+
+## Calculation of summary measures of the causal effect
+
+Once the setting includes both heterogeneous effects and staggered timing, there
+is a question of how to aggregate the causal effect estimates across multiple
+treated units into one estimate. Here are three causal effects that could be 
+calculated:
+
+```{r echo=F}
+blue_hex <- "#2885C2"
+orange_hex <- "#fcba03"
+green_hex <- "#28C269"
+```
+
+
+`r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` 
+
+Take an average of the estimated effects across the treated units: 
+
+$\frac{\text{Number in adoption cohort 1}}{\text{Number of treated units}} \times ATT_{adoption cohort 1} + \frac{\text{Number in adoption cohort 2}}{\text{Number of treated units}} \times ATT_{adoption cohort 2}$
+
+$\frac{1}{2} \times 6 + \frac{1}{2} \times 4 = 5$
+<br>
+<br>
+
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` 
+
+Take an average of the effects across all post-treatment time points:
+
+$\frac{ATT_{t=1} + ATT_{t=2} + ... + ATT_{t=16}}{\text{Number of posttreatment times}}$
+
+$\frac{[5\times9] +[6\times7]}{16}=5.43$
+<br>
+<br>
+
+`r emo::ji("green_book")` `r colorize("Causal Effect B", green_hex)` 
+
+Take a weighted average of the post-treatment-time-specific effects, where the 
+weights correspond to the number of units treated at each time point:
+
+   $\frac{2\times{[ATT_{t=1}} +{ATT_{t=2}} + ... + {ATT_{t=9}] + 1\times[{ATT_{t=10} + ... +ATT_{t=16}}}]}{\text{Total number of state-time points}}$
+   
+   $\frac{2\times(5+5+...+5) + 1\times{(6+...+6)}}{25} = 5.28$
+<br>
+<br>
+   
+Each of these causal effects are valid measures to calculate and all come with 
+strengths and weaknesses. The researcher needs to decide which one to calculate.
+Let's first see how the estimate from the TWFE model compares.
+
+## TWFE Regression Model
+
+```{r}
+s7_mod <- lm(outcome ~ policy + state + factor(time), 
+             data = s7)
+tidy(s7_mod)
+```
+
+The coefficient of the policy term equals `r s7_mod$coefficients["policy1"] %>% round(2)`.
+This is smaller than any of `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` , `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` , or `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`.
+To see how the TWFE came to be this number, we use the Goodman Bacon 
+decomposition to see how much weight each of the contrasts contributes to the 
+effect estimate.
+
+## Goodman Bacon Decomposition
+
+```{r}
+s7 %<>% mutate(state_n = as.numeric(as.character(state)),
+               policy_n = as.numeric(as.character(policy)))
+
+s7_bacon <- bacon(outcome ~ policy_n,
+      data = s7,
+      id_var = "state_n",
+      time_var = "time")
+```
+
+It is more helpful to view the four contrasts separately:
+
+```{r}
+s7_bacon
+```
+
+The estimates of the treatment effects for each contrast are as we
+calculated them above. However, the TWFE's estimate of 
+`r sum(s7_bacon$estimate*s7_bacon$weight) %>% round(2)`,
+is pulled towards 4, because the combined weight put on
+the effect estimate of 4 is higher than the combined weight put on the effect
+estimate of 6. This leads to an effect estimate from TWFE that is smaller than 
+any of the causal effect estimates.
+
+The TWFE regression estimate is estimating a different causal estimand than any 
+of the three with initially proposed. The new proposed estimators overcome this
+issue and are considered next.
+
+## Group-Time ATT Estimator
+
+Like in the earlier examples we start by running the `att_gt()` function. 
+
+```{r, warning=F}
+s7_cs <- att_gt(yname = "outcome", 
+             tname = "time", 
+             idname = "state_n", 
+             gname = "time_first_treat", 
+             data = s7, 
+             control_group = "notyettreated",
+             anticipation = 0)
+```
+
+Callaway and Sant'Anna provide many options for aggregating the group-time 
+effects. The simplest option is specify `type = simple` in the `attge()` function.
+This estimate considers only the contrasts with a never-treated state (i.e., 
+Comparisons 1 and 2 in the figure above) and combines them into a weighted 
+average, where the weights correspond to each adoption cohort's time spent in 
+the post-treatment period. For contrast 1, there are 16 time periods post 
+treatment and for contrast 2, there are 9 periods post-treatment. Thus the 
+weighted average is: $6\times(16/25) + 4\times(9/25)=$ `r 6*(16/25) + 4*(9/25)`.
+This is the same as `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)` calculated above.
+
+```{r}
+#aggregate the group time average treatment effects
+#type = "simple": weighted average of all group-time average treatment effects
+#with weights proportional to the group size
+s7_cs_ag <- aggte(s7_cs, type="simple")
+summary(s7_cs_ag)
+```
+
+Alternatively, we can specify `type = "group"` to get separate effect estimates 
+according to time of implementation. In the output `Group` denotes the time of 
+the policy's introduction for the treated states.
+
+```{r}
+s7_cs_ag2 <- aggte(s7_cs, type = "group")
+summary(s7_cs_ag2)
+```
+
+The output also displays an estimate of the Overall ATT, equal to `r s7_cs_ag2$overall.att`.
+This estimate is different from the one estimated `where type = "simple"`. Here,
+the estimate is a weighted average, with weights proportional to the number of 
+units in each adoption cohort (e.g., $(1/2)\times 6 + (1/2) \times 4=$ `r s7_cs_ag2$overall.att`). This is equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` calculated above.
+
+Alternatively, we can specific `type = "dynamic"` to get separate effect estimates
+for each time period. We can also see that the Overall ATT from this call is 
+equal to `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` calculated above.
+
+```{r}
+s7_cs_ag2 <- aggte(s7_cs, type = "dynamic")
+summary(s7_cs_ag2)
+```
+
+## Target Trial Estimator
+
+`r colorize("Dana, need help choosing which fit_event_* function to use for this one", "red")`
+
+We can also estimate the effects using the Target Trial estimator. This time, we
+start with the `fit_event_jack()` function which gives an estimate for each time
+since treatment. 
+
+```{r}
+s7_bm <- fit_event_jack(outcome_var = "outcome", 
+                            date_var = "time_as_date", 
+                            unit_var = "state",
+                            policy_var = "time_first_trt_date", 
+                            data = s7, 
+                            max_time_to = 10e7)
+
+s7_bm_ave <- s7_bm %>% filter(cohort == "average")
+
+s7_bm_ave %<>% mutate(lb = estimate - 1.96*se,
+                      ub = estimate + 1.96*se)
+```
+
+The plot below shows that the time-specific estimates equal 5 when there are
+two states contributing to the estimate (one with a causal effect of 4 and the 
+other with a causal effect of 6) and 6 when only the early-introduction state 
+contributes to the causal effect estimate.
+
+```{r}
+ggplot(s7_bm_ave, aes(x = event_time, y = estimate)) + 
+  geom_hline(yintercept = 0, lty = 2) +
+  geom_point(aes(col = event_time >= 0)) + 
+  geom_linerange(aes(ymin = lb, ymax = ub, col = event_time >= 0)) + 
+  labs(y = "Estimate", x = "Event time") + 
+  theme_bw() + 
+  scale_color_discrete(labels=c('pre', 'post')) +
+  theme(legend.title=element_blank(), legend.position = "bottom")
+```
+
+To summarize the effects into one aggregated effect estimate
+we use the fit_event_jack_sum() function:
+
+```{r}
+s7_bm2 <- fit_event_jack_sum(outcome_var = "outcome", 
+                            date_var = "time_as_date", 
+                            unit_var = "state",
+                            policy_var = "time_first_trt_date", 
+                            data = s7, 
+                            max_time_to = 10e7)
+
+s7_bm2$estimate
+```
+
+```{r}
+s7_bm3 <- fit_event_jack_sum_hte(outcome_var = "outcome", 
+                            date_var = "time_as_date", 
+                            unit_var = "state",
+                            policy_var = "time_first_trt_date", 
+                            data = s7, 
+                            max_time_to = 10e7)
+
+s7_bm3$estimate
+```
+
+The aggregated effect estimate equals `r s7_bm2$estimate`, equivalent to the 
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`.
+
+## Summary
+
+When the treatment effect is staggered and heterogeneous, the TWFE estimate aggregates
+the heterogeneous effects using weights that are calculated by the model and
+not concordant with weights researchers would intuitively choose. In this 
+example, this led to an effect estimate that was lower than the three causal 
+effect estimates we aimed to estimate. Thus, TWFE performs unfavorably when 
+effects are heterogeneous across adoption cohorts. 
+
+**Recommendation:** Use the `aggte()` function with `type = "group"` to estimate 
+effects separately for each adoption cohort alongside confidence intervals. Examine
+the difference in effects across adoption cohorts and their associated precision, 
+remembering that the number of units contributing to each adoption cohort will
+affect the width of its confidence interval, which may make it difficult to make
+conclusive statements about heterogeneity across adoption cohorts in the presence
+of limited data. 
+
+
 # Scenario 8 (4 states, staggered timing, dynamic and heterogeneous treatment effects)
 
 Scenario 8 combines the complexities across Scenarios 6 and 7. In this scenario,
