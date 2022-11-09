@@ -1489,19 +1489,19 @@ consider estimating the effects separately by timing of introduction if that is
 sensible for the policy change under study (i.e., if there are only a few 
 separate time points), or estimating one overall summary parameter.
 
-# Scenario 7 (4 states, staggered timing, dynamic and heterogeneous treatment effects)
+# Scenario 8 (4 states, staggered timing, dynamic and heterogeneous treatment effects)
 
-Scenario 7 is like Scenario 6 except now the treatment effect is dynamic and
-heterogeneous. In this scenario, the state that implements the policy change 
-first has a stronger treatment effect (i.e., a steeper change in slope).
+Scenario 8 combines the complexities across Scenarios 6 and 7. In this scenario,
+the state that implements the policy change first has a stronger treatment 
+effect (i.e., a steeper change in slope).
 
 ```{r}
-s7 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen7", range = "A1:H81", 
+s8 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen8", range = "A1:H81", 
                 col_types = c("text", "numeric", "text", "numeric", "text", "numeric",
                               "date", "date"))
 ```
 
-## Visualization of Scenario 7
+## Visualization of Scenario 8
 
 ```{r, echo=F}
 
@@ -1511,13 +1511,13 @@ treated5_green <- "#005a32"
 treated12_red <- "#99000d"
 
 
-s7 %<>% mutate(ever_trt = case_when(state %in% c(3, 4) ~ "treated", 
+s8 %<>% mutate(ever_trt = case_when(state %in% c(3, 4) ~ "treated", 
                                     state %in% c(1, 2) ~ "untreated")
                )
 
-ggplot(s7, aes(x = time, y = outcome)) + 
+ggplot(s8, aes(x = time, y = outcome)) + 
   geom_point(aes(fill = factor(state), pch = ever_trt)) +
-  labs(title = "Scenario 7 (Staggered, dynamic, and heterogeneous)") +
+  labs(title = "Scenario 8 (Staggered, dynamic, and heterogeneous)") +
   geom_line(aes(col = factor(state))) + 
   geom_vline(aes(xintercept = 4.5), lty = 2, col = treated5_green) + 
   geom_vline(aes(xintercept = 11.5), lty = 2, col = treated12_red) +
@@ -1530,50 +1530,50 @@ ggplot(s7, aes(x = time, y = outcome)) +
 **Visualization of all comparisons made by TWFE regression**
 
 ```{r, echo=F}
-s7_mean_1_4 <- s7 %>% filter(time < 5) %>%
+s8_mean_1_4 <- s8 %>% filter(time < 5) %>%
   group_by(state) %>%
   summarise(mean_1_4 = mean(outcome))
 
-s7_mean_5_20 <- s7 %>% filter(time >= 5) %>%
+s8_mean_5_20 <- s8 %>% filter(time >= 5) %>%
   group_by(state) %>%
   summarise(mean_5_20 = mean(outcome))
 
-s7_DID1 <- bind_cols(s7_mean_1_4, s7_mean_5_20 %>% select(-state)) %>%
+s8_DID1 <- bind_cols(s8_mean_1_4, s8_mean_5_20 %>% select(-state)) %>%
   mutate(time_diff = mean_5_20 - mean_1_4)
 
-s7_mean_1_11 <- s7 %>% filter(time < 12) %>%
+s8_mean_1_11 <- s8 %>% filter(time < 12) %>%
   group_by(state) %>%
   summarise(mean_1_11 = mean(outcome))
 
-s7_mean_12_20 <- s7 %>% filter(time >= 12) %>%
+s8_mean_12_20 <- s8 %>% filter(time >= 12) %>%
   group_by(state) %>%
   summarise(mean_12_20 = mean(outcome))
 
-s7_DID2 <- bind_cols(s7_mean_1_11, 
-                     s7_mean_12_20 %>% select(-state)) %>%
+s8_DID2 <- bind_cols(s8_mean_1_11, 
+                     s8_mean_12_20 %>% select(-state)) %>%
   mutate(time_diff2 = mean_12_20 - mean_1_11)
 
-s7_mean_5_11 <- s7 %>% filter(time >= 5 & time < 12) %>%
+s8_mean_5_11 <- s8 %>% filter(time >= 5 & time < 12) %>%
   group_by(state) %>%
   summarise(mean_5_11 = mean(outcome))
 
-s7_DID3 <- bind_cols(s7_mean_1_4, 
-                     s7_mean_5_11 %>% select(-state)) %>%
+s8_DID3 <- bind_cols(s8_mean_1_4, 
+                     s8_mean_5_11 %>% select(-state)) %>%
   mutate(time_diff3 = mean_5_11 - mean_1_4)
 
-s7_DID4 <- bind_cols(s7_mean_5_11, 
-                     s7_mean_12_20 %>% select(-state)) %>%
+s8_DID4 <- bind_cols(s8_mean_5_11, 
+                     s8_mean_12_20 %>% select(-state)) %>%
   mutate(time_diff4 = mean_12_20 - mean_5_11)
 ```
 
 ```{r, echo = F, fig.height = 8, fig.width = 10}
-s7_comp1 <- ggplot(s7 %>% filter(state %in% c(1, 2, 3)), aes(x = time, y = outcome)) +   
+s8_comp1 <- ggplot(s8 %>% filter(state %in% c(1, 2, 3)), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(state))) + 
   geom_point(aes(fill = factor(state), pch = ever_trt)) + labs(title = "A) Contrast 1 (Treated vs. never-treated)") +
   geom_vline(aes(xintercept = 4.5), lty = 2, col = treated5_green) +
-  geom_label_repel(data = s7_DID1 %>% filter(state %in% c(1,2,3)),
+  geom_label_repel(data = s8_DID1 %>% filter(state %in% c(1,2,3)),
                   aes(y = mean_1_4, x = 2.5, label = paste("mean_y:", mean_1_4), col = state), show.legend = F) +
-  geom_label_repel(data = s7_DID1 %>% filter(state %in% c(1,2,3)),
+  geom_label_repel(data = s8_DID1 %>% filter(state %in% c(1,2,3)),
                   aes(y = mean_5_20, x = 12.5, label = paste("mean_y:", mean_5_20), col = state), show.legend = F) +
   scale_x_continuous(limits = c(1, 20))  + 
   scale_color_manual(values = c(control1_blue, control2_blue, treated5_green)) +
@@ -1581,13 +1581,13 @@ s7_comp1 <- ggplot(s7 %>% filter(state %in% c(1, 2, 3)), aes(x = time, y = outco
   scale_shape_manual(values = c(21, 23)) + 
   theme_bw() 
 
-s7_comp2 <- ggplot(s7 %>% filter(state %in% c(1, 2, 4)), aes(x = time, y = outcome)) +   
+s8_comp2 <- ggplot(s8 %>% filter(state %in% c(1, 2, 4)), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(state))) + 
   geom_point(aes(fill = factor(state), pch = ever_trt)) + labs(title = "B) Contrast 2 (Treated vs. never-treated)") +
   geom_vline(aes(xintercept = 11.5), lty = 2, col = treated12_red) +
-  geom_label_repel(data = s7_DID2 %>% filter(state %in% c(1,2,4)),
+  geom_label_repel(data = s8_DID2 %>% filter(state %in% c(1,2,4)),
                    aes(y = mean_1_11, x = 6, label = paste("mean_y:", mean_1_11), col = state), show.legend = F) +
-  geom_label_repel(data = s7_DID2 %>% filter(state %in% c(1,2,4)),
+  geom_label_repel(data = s8_DID2 %>% filter(state %in% c(1,2,4)),
                    aes(y = mean_12_20, x = 16, label = paste("mean_y:", mean_12_20), col = state), show.legend = F) +
   scale_x_continuous(limits = c(1, 20))  + 
   scale_color_manual(values = c(control1_blue, control2_blue, treated12_red)) +
@@ -1595,13 +1595,13 @@ s7_comp2 <- ggplot(s7 %>% filter(state %in% c(1, 2, 4)), aes(x = time, y = outco
   scale_shape_manual(values = c(21, 23)) + 
   theme_bw() 
 
-s7_comp4 <- ggplot(s7 %>% filter(state %in% c(3, 4), time >= 5), aes(x = time, y = outcome)) +
+s8_comp4 <- ggplot(s8 %>% filter(state %in% c(3, 4), time >= 5), aes(x = time, y = outcome)) +
   geom_line(aes(col = factor(state))) + 
   geom_point(aes(fill = factor(state), pch = ever_trt), show.legend = F) + labs(title = "C) Contrast 4 (Later vs. earlier-treated)") +
   geom_vline(aes(xintercept = 11.5), lty = 2, col = treated12_red) +
-  geom_label_repel(data = s7_DID4 %>% filter(state %in% c(3,4)),
+  geom_label_repel(data = s8_DID4 %>% filter(state %in% c(3,4)),
                    aes(y = mean_5_11, x = 8, label = paste("mean_y:", mean_5_11), col = state), show.legend = F) +
-  geom_label_repel(data = s7_DID4 %>% filter(state %in% c(3,4)),
+  geom_label_repel(data = s8_DID4 %>% filter(state %in% c(3,4)),
                    aes(y = mean_12_20, x = 16, label = paste("mean_y:", mean_12_20), col = state), show.legend = F) + 
   scale_x_continuous(limits = c(1, 20))  + 
   scale_color_manual(values = c(treated5_green, treated12_red)) +
@@ -1609,13 +1609,13 @@ s7_comp4 <- ggplot(s7 %>% filter(state %in% c(3, 4), time >= 5), aes(x = time, y
   scale_shape_manual(values = c(23)) + 
   theme_bw() 
 
-s7_comp3 <- ggplot(s7 %>% filter(state %in% c(3, 4), time < 12), aes(x = time, y = outcome)) +   
+s8_comp3 <- ggplot(s8 %>% filter(state %in% c(3, 4), time < 12), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(state))) + 
   geom_point(aes(fill = factor(state), pch = ever_trt), show.legend = F) + labs(title = "D) Contrast 3 (Earlier vs. later-treated)") +
   geom_vline(aes(xintercept = 4.5), lty = 2, col = treated5_green) +
-  geom_label_repel(data = s7_DID3 %>% filter(state %in% c(3,4)),
+  geom_label_repel(data = s8_DID3 %>% filter(state %in% c(3,4)),
                    aes(y = mean_1_4, x = 2.5, label = paste("mean_y:", mean_1_4), col = state), show.legend = F) +
-  geom_label_repel(data = s7_DID3 %>% filter(state %in% c(3,4)),
+  geom_label_repel(data = s8_DID3 %>% filter(state %in% c(3,4)),
                    aes(y = mean_5_11, x = 8, label = paste("mean_y:", mean_5_11), col = state), show.legend = F) + 
   scale_x_continuous(limits = c(1, 20))  + 
   scale_color_manual(values = c(treated5_green, treated12_red)) +
@@ -1623,7 +1623,7 @@ s7_comp3 <- ggplot(s7 %>% filter(state %in% c(3, 4), time < 12), aes(x = time, y
   scale_shape_manual(values = c(23)) + 
   theme_bw() 
 
-s7_comp1 + s7_comp2 + s7_comp3 + s7_comp4 + plot_layout(guides = "collect")
+s8_comp1 + s8_comp2 + s8_comp3 + s8_comp4 + plot_layout(guides = "collect")
 ```
 
 **Contrast 1:**
@@ -1726,12 +1726,12 @@ $$\frac{2 \times (2 + 3.5 + ... + 14) + (21 + 23 ... + 33)}{25} = 13.32$$
 Let's take a look at the regression output:
 
 ```{r}
-s7_mod <- lm(outcome ~ policy + state + factor(time), 
-             data = s7)
-tidy(s7_mod)
+s8_mod <- lm(outcome ~ policy + state + factor(time), 
+             data = s8)
+tidy(s8_mod)
 ```
 
-The coefficient of the policy term equals `r s7_mod$coefficients["policy1"] %>% round(2)`.
+The coefficient of the policy term equals `r s8_mod$coefficients["policy1"] %>% round(2)`.
 This is smaller than any of `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` , `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` , or `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`. Why is the 
 TWFE estimate so much lower? In the previous scenario we 
 learned how the TWFE estimate considers each possible contrast between a treated
@@ -1744,21 +1744,21 @@ much each contrast contributed to the TWFE estimate:
 ## Goodman Bacon Decomposition
 
 ```{r}
-s7 %<>% mutate(state_n = as.numeric(as.character(state)),
+s8 %<>% mutate(state_n = as.numeric(as.character(state)),
                policy_n = as.numeric(as.character(policy)))
 
-s7_bacon <- bacon(outcome ~ policy_n,
-      data = s7,
+s8_bacon <- bacon(outcome ~ policy_n,
+      data = s8,
       id_var = "state_n",
       time_var = "time")
 ```
 
 ```{r}
-s7_bacon
+s8_bacon
 ```
 
 Notice that our fourth contrast (here shown in row 3 of the second table) 
-contributes `r round(s7_bacon$weight[3]*100)`% of the weight to the estimate. We
+contributes `r round(s8_bacon$weight[3]*100)`% of the weight to the estimate. We
 want an estimator that does not use this contrast! 
 
 Below we confirm the weighted estimate across the rows equals the TWFE estimate
@@ -1766,7 +1766,7 @@ from the regression:
 
 ```{r}
 #see the TWFE estimate
-sum(s7_bacon$estimate*s7_bacon$weight)
+sum(s8_bacon$estimate*s8_bacon$weight)
 ```
 
 The TWFE estimator is influenced by the forbidden fourth contrast that doesn't 
@@ -1781,15 +1781,15 @@ time we won't display the output from `summary()`, but feel free to uncomment
 that line in the R markdown document to take a peak:
 
 ```{r, warning=F}
-s7_cs <- att_gt(yname = "outcome", 
+s8_cs <- att_gt(yname = "outcome", 
              tname = "time", 
              idname = "state_n", 
              gname = "time_first_treat", 
-             data = s7, 
+             data = s8, 
              control_group = "notyettreated",
              anticipation = 0)
 
-#summary(s7_cs)
+#summary(s8_cs)
 ```
 
 Let's aggregate the ATTs using `type = simple`. Callaway and Sant'Anna's estimate
@@ -1804,16 +1804,16 @@ is equal to `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`
 #aggregate the group time average treatment effects
 #type = "simple": weighted average of all group-time average treatment effects
 #with weights proportional to the group size
-s7_cs_ag <- aggte(s7_cs, type="simple")
-summary(s7_cs_ag)
+s8_cs_ag <- aggte(s8_cs, type="simple")
+summary(s8_cs_ag)
 ```
 
 Alternatively, we can specify `type = "group"` to get separate effect estimates 
 according to time of implementation and see that these match our by-hand calculations: 
 
 ```{r}
-s7_cs_ag2 <- aggte(s7_cs, type = "group")
-summary(s7_cs_ag2)
+s8_cs_ag2 <- aggte(s8_cs, type = "group")
+summary(s8_cs_ag2)
 ```
 
 Note here that the Overall ATT is a simple average of the two groups (e.g., (18 + 5)/2 = 11.5), equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
@@ -1824,8 +1824,8 @@ is also done for pre-treatment time, so don't be alarmed by all the rows in this
 table!
 
 ```{r}
-s7_cs_ag3 <- aggte(s7_cs, type="dynamic")
-summary(s7_cs_ag3)
+s8_cs_ag3 <- aggte(s8_cs, type="dynamic")
+summary(s8_cs_ag3)
 ```
 
 Note here that the Overall ATT is a simple average of all effects in the post-treatment 
@@ -1848,15 +1848,15 @@ that occurred for times 0 through 8 since there were two data points that could
 be used to estimate standard errors.
 
 ```{r}
-ggdid(s7_cs_ag3)
+ggdid(s8_cs_ag3)
 ```
 
 Here again we don't display the results using `type = "calendar"` but have included the code here in case you want to run it. 
 
 ```{r, eval=F}
-s7_cs_ag4 <- aggte(s7_cs, type = "calendar")
-summary(s7_cs_ag4)
-ggdid(s7_cs_ag4)
+s8_cs_ag4 <- aggte(s8_cs, type = "calendar")
+summary(s8_cs_ag4)
+ggdid(s8_cs_ag4)
 ```
 
 ## Target Trial Estimator
@@ -1865,19 +1865,19 @@ The code and output below show that the dynamic estimates using the Target Trial
 approach are the same as those produced by the Group-Time ATT approach. 
 
 ```{r}
-s7_bm <- fit_event_jack(outcome_var = "outcome", 
+s8_bm <- fit_event_jack(outcome_var = "outcome", 
                         date_var = "time_as_date", 
                         unit_var = "state",
                         policy_var = "time_first_trt_date", 
-                        data = s7, 
+                        data = s8, 
                         max_time_to = 10e7)
 
-s7_bm_ave <- s7_bm %>% filter(cohort == "average")
+s8_bm_ave <- s8_bm %>% filter(cohort == "average")
 
-s7_bm_ave %<>% mutate(lb = estimate - 1.96*se,
+s8_bm_ave %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
 
-ggplot(s7_bm_ave, aes(x = event_time, y = estimate)) + 
+ggplot(s8_bm_ave, aes(x = event_time, y = estimate)) + 
   geom_hline(yintercept = 0, lty = 2) +
   geom_point(aes(col = event_time >= 0)) + 
   geom_linerange(aes(ymin = lb, ymax = ub, col = event_time >= 0)) + 
@@ -1891,14 +1891,14 @@ To get one summary estimate across time points we use the `fit_event_jack_sum()`
 function because the effects are dynamic across adoption cohorts:
 
 ```{r}
-s7_bm2 <- fit_event_jack_sum(outcome_var = "outcome", 
+s8_bm2 <- fit_event_jack_sum(outcome_var = "outcome", 
                         date_var = "time_as_date", 
                         unit_var = "state",
                         policy_var = "time_first_trt_date", 
-                        data = s7, 
+                        data = s8, 
                         max_time_to = 10e7)
 
-s7_bm2$estimate
+s8_bm2$estimate
 ```
 
 This gives the same estimate as produced by the Group-Time ATT estimator when 
@@ -1909,14 +1909,14 @@ If instead you want to estimate the overarching ATT using the same approach as
 used when `type = "group"`, you can use the `fit_event_jack_sum_hte()` function:
 
 ```{r}
-s7_bm3 <- fit_event_jack_sum_hte(outcome_var = "outcome", 
+s8_bm3 <- fit_event_jack_sum_hte(outcome_var = "outcome", 
                         date_var = "time_as_date", 
                         unit_var = "state",
                         policy_var = "time_first_trt_date", 
-                        data = s7, 
+                        data = s8, 
                         max_time_to = 10e7)
 
-s7_bm3$estimate
+s8_bm3$estimate
 ```
 
 This is equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
@@ -1928,9 +1928,9 @@ I run the regression and `filter()` out the policy estimates for easy viewing
 since the regression table is so large:
 
 ```{r}
-s7_mod2 <- lm(outcome ~ time_since_policy + state + factor(time), 
-             data = s7)
-tidy(s7_mod2) %>% filter(str_detect(term, "time_since")) %>% 
+s8_mod2 <- lm(outcome ~ time_since_policy + state + factor(time), 
+             data = s8)
+tidy(s8_mod2) %>% filter(str_detect(term, "time_since")) %>% 
   mutate(time = as.numeric(gsub("time_since_policy", "", term))) %>% 
   arrange(time) 
 ```
@@ -1948,7 +1948,7 @@ the TWFE regression specification can produced biased results, as will the
 specification using a categorical variable for time since treatment. In this 
 case, use one of the newer estimators. 
 
-# Scenario 8 (24 states, staggered timing, dynamic and hetergenous treatment effects)
+# Scenario 9 (24 states, staggered timing, dynamic and hetergenous treatment effects)
 
 So far, we have considered simpler examples where the outcomes didn't incorporate 
 noise. This was helpful for getting started, but doesn't reflect the imprecision
@@ -1961,7 +1961,7 @@ also added variability to the outcome, with different amounts of variability by
 state to reflect units containing varying sample sizes.
 
 ```{r}
-s8_start <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen8", 
+s9_start <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen9", 
                 col_types = c("text", "numeric", "text", "numeric", "text", "numeric"))
 
 # we hid some code here from displaying in the html version of this file where
@@ -1971,8 +1971,8 @@ s8_start <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen8",
 
 ```{r, echo=F}
 set.seed(112358)
-#expand on the s8 dataset to include many states 
-state_base1 <- s8_start %>% filter(state == 1)
+#expand on the s9 dataset to include many states 
+state_base1 <- s9_start %>% filter(state == 1)
 length <- dim(state_base1)[1]
 state10 <- state_base1 %>% mutate(outcome = outcome  + rnorm(length, 0, 2),
                                   state = 10)
@@ -1988,7 +1988,7 @@ state15 <- state_base1 %>% mutate(outcome = outcome  + rnorm(length, 0, 5),
                                   state = 15)
 states_1015 <- bind_rows(state10, state11, state12, state13, state14, state15)
 
-state_base2 <- s8_start %>% filter(state == 2)
+state_base2 <- s9_start %>% filter(state == 2)
 length <- dim(state_base2)[1]
 state20 <- state_base2 %>% mutate(outcome = outcome  + rnorm(length, 0, 2),
                                   state = 20)
@@ -2004,7 +2004,7 @@ state25 <- state_base2 %>% mutate(outcome = outcome  + rnorm(length, 0, 5),
                                   state = 25)
 states_2025 <- bind_rows(state20, state21, state22, state23, state24, state25)
 
-state_base3 <- s8_start %>% filter(state == 3)
+state_base3 <- s9_start %>% filter(state == 3)
 length <- dim(state_base3)[1]
 state30 <- state_base3 %>% mutate(outcome = outcome  + rnorm(length, 0, 2),
                                   state = 30)
@@ -2020,7 +2020,7 @@ state35 <- state_base3 %>% mutate(outcome = outcome  + rnorm(length, 0, 5),
                                   state = 35)
 states_3035 <- bind_rows(state30, state31, state32, state33, state34, state35)
 
-state_base4 <- s8_start %>% filter(state == 4)
+state_base4 <- s9_start %>% filter(state == 4)
 length <- dim(state_base4)[1]
 state40 <- state_base4 %>% mutate(outcome = outcome  + rnorm(length, 0, 2),
                                   state = 40)
@@ -2062,7 +2062,7 @@ ggplot(all_states, aes(x = time, y = outcome)) +
 **Visualization of all comparisons made by TWFE regression**
 
 ```{r, echo = F, fig.height = 8, fig.width = 10}
-s8_comp1 <- ggplot(all_states %>% filter(state <= 35), aes(x = time, y = outcome)) +   
+s9_comp1 <- ggplot(all_states %>% filter(state <= 35), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(ever_trt), group = state)) + 
   geom_point(aes(fill = factor(ever_trt), pch = ever_trt, group = state)) + labs(title = "A) Contrast 1 (Treated vs. never-treated)") +
   geom_vline(aes(xintercept = 14.5), lty = 2, col = treated5_green) +
@@ -2072,7 +2072,7 @@ s8_comp1 <- ggplot(all_states %>% filter(state <= 35), aes(x = time, y = outcome
   scale_shape_manual(values = c(21, 23)) + 
   theme_bw() 
 
-s8_comp2 <- ggplot(all_states %>% filter(state <= 25 | state >= 40), aes(x = time, y = outcome)) +   
+s9_comp2 <- ggplot(all_states %>% filter(state <= 25 | state >= 40), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(ever_trt), group = state)) + 
   geom_point(aes(fill = factor(ever_trt), pch = ever_trt, group = state)) + labs(title = "B) Contrast 2 (Treated vs. never-treated)") +
   geom_vline(aes(xintercept = 21.5), lty = 2, col = treated12_red) +
@@ -2082,7 +2082,7 @@ s8_comp2 <- ggplot(all_states %>% filter(state <= 25 | state >= 40), aes(x = tim
   scale_shape_manual(values = c(21, 23)) + 
   theme_bw() 
 
-s8_comp4 <- ggplot(all_states %>% filter(state >= 30, time >= 15), aes(x = time, y = outcome)) +
+s9_comp4 <- ggplot(all_states %>% filter(state >= 30, time >= 15), aes(x = time, y = outcome)) +
   geom_line(aes(col = factor(time_first_treat), group = state)) + 
   geom_point(aes(fill = factor(time_first_treat), group = state, pch = ever_trt), show.legend = F) + 
   labs(title = "C) Contrast 4 (Later vs. earlier-treated)") +
@@ -2093,7 +2093,7 @@ s8_comp4 <- ggplot(all_states %>% filter(state >= 30, time >= 15), aes(x = time,
   scale_shape_manual(values = c(23)) + 
   theme_bw() 
 
-s8_comp3 <- ggplot(all_states %>% filter(state >= 30, time < 22), aes(x = time, y = outcome)) +   
+s9_comp3 <- ggplot(all_states %>% filter(state >= 30, time < 22), aes(x = time, y = outcome)) +   
   geom_line(aes(col = factor(time_first_treat), group = state)) + 
   geom_point(aes(fill = factor(time_first_treat), group = state, pch = ever_trt), show.legend = F) +
   labs(title = "D) Contrast 3 (Earlier vs. later-treated)") +
@@ -2104,15 +2104,15 @@ s8_comp3 <- ggplot(all_states %>% filter(state >= 30, time < 22), aes(x = time, 
   scale_shape_manual(values = c(23)) + 
   theme_bw() 
 
-s8_comp1 + s8_comp2 + s8_comp3 + s8_comp4 + plot_layout(guides = "collect")
+s9_comp1 + s9_comp2 + s9_comp3 + s9_comp4 + plot_layout(guides = "collect")
 ```
 
 We start by running the linear model as we have done previously:
 
 ```{r}
-s8_mod <- lm(outcome ~ policy + factor(state) + factor(time), 
+s9_mod <- lm(outcome ~ policy + factor(state) + factor(time), 
              data = all_states)
-tidy(s8_mod)
+tidy(s9_mod)
 ```
 
 Up until now, we haven't worried about the estimation of the 95% confidence 
@@ -2124,16 +2124,16 @@ account for the clustering on data over time within state. To do that we use the
 ```{r}
 #install.packages("sandwich")
 library(sandwich)
-m2_var <- vcovHC(s8_mod)
+m2_var <- vcovHC(s9_mod)
 ```
 
 We can then pull out the variance from the `policy1` term from the 
 variance-covariance matrix and use it to compute Wald type confidence intervals:
 
 ```{r}
-est = summary(s8_mod)$coefficients["policy1", "Estimate"] 
-lb = summary(s8_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
-ub = summary(s8_mod)$coefficients["policy1", "Estimate"] + 1.96*sqrt(m2_var["policy1","policy1"])
+est = summary(s9_mod)$coefficients["policy1", "Estimate"] 
+lb = summary(s9_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
+ub = summary(s9_mod)$coefficients["policy1", "Estimate"] + 1.96*sqrt(m2_var["policy1","policy1"])
 ```
 
 The estimated effect is `r round(est, 1)` with a 95% CI from `r sprintf("%.1f", round(lb, 1))`
@@ -2156,12 +2156,12 @@ We can compare this to the output from the Goodman Bacon decomposition:
 ```{r}
 all_states %<>% mutate(policy_n = as.numeric(policy))
 
-s8_bacon <- bacon(outcome ~ policy_n,
+s9_bacon <- bacon(outcome ~ policy_n,
       data = all_states,
       id_var = "state",
       time_var = "time")
 
-s8_bacon
+s9_bacon
 ```
 
 We can see that the estimates displayed in the second table are not too far off
@@ -2176,7 +2176,7 @@ shortened.
 Compare to Callaway and Sant'Anna's approach:
 
 ```{r}
-s8_cs <- att_gt(yname = "outcome", 
+s9_cs <- att_gt(yname = "outcome", 
              tname = "time", 
              idname = "state", 
              gname = "time_first_treat", 
@@ -2184,15 +2184,15 @@ s8_cs <- att_gt(yname = "outcome",
              control_group = "nevertreated",
              anticipation = 0)
 
-s8_cs_ag <- aggte(s8_cs, type="simple")
-summary(s8_cs_ag)
+s9_cs_ag <- aggte(s9_cs, type="simple")
+summary(s9_cs_ag)
 
-lb = s8_cs_ag$overall.att - 1.96*s8_cs_ag$overall.se 
-ub = s8_cs_ag$overall.att + 1.96*s8_cs_ag$overall.se
-round(c(s8_cs_ag$overall.att, lb, ub), 2)
+lb = s9_cs_ag$overall.att - 1.96*s9_cs_ag$overall.se 
+ub = s9_cs_ag$overall.att + 1.96*s9_cs_ag$overall.se
+round(c(s9_cs_ag$overall.att, lb, ub), 2)
 ```
 
-The Group-Time estimate is `r s8_cs_ag$overall.att %>% round(2)` with 95% CI `r lb %>% round(2)` 
+The Group-Time estimate is `r s9_cs_ag$overall.att %>% round(2)` with 95% CI `r lb %>% round(2)` 
 to `r ub %>% round(2)`.
 
 The simple ATT is a weighted average (based on the amount of time in the 
@@ -2206,22 +2206,22 @@ like this:
 To figure out what the group specific estimates are we use `type = group`:
 
 ```{r}
-s8_cs_ag2 <- aggte(s8_cs, type = "group")
-summary(s8_cs_ag2)
+s9_cs_ag2 <- aggte(s9_cs, type = "group")
+summary(s9_cs_ag2)
 ```
 
-Here the Overall ATT is a simple average of the group-specific ATTs (`r round((s8_cs_ag2$att.egt[1] + s8_cs_ag2$att.egt[2])/2, 4)`).
+Here the Overall ATT is a simple average of the group-specific ATTs (`r round((s9_cs_ag2$att.egt[1] + s9_cs_ag2$att.egt[2])/2, 4)`).
 
 Finally, we can look at these effect estimates separately for each time since 
 the intervention began and graph them: 
 
 ```{r}
-s8_cs_ag3 <- aggte(s8_cs, type="dynamic")
-summary(s8_cs_ag3)
+s9_cs_ag3 <- aggte(s9_cs, type="dynamic")
+summary(s9_cs_ag3)
 ```
 
 ```{r, fig.width=10}
-ggdid(s8_cs_ag3)
+ggdid(s9_cs_ag3)
 ```
 
 Now that we have confidence intervals, we can assess the parallel trends 
@@ -2252,23 +2252,23 @@ clustering unit in the `i` argument, the time unit in the `t` argument. Here we
 use the newly-defined `time_first_treat2` as the grouping variable `g`. 
 
 ```{r}
-s8_sa <- staggered_sa(df = all_states,
+s9_sa <- staggered_sa(df = all_states,
                       i = "state",
                       t = "time",
                       g = "time_first_treat2",
                       y = "outcome", 
                       estimand = "simple")
 
-s8_sa$estimate
+s9_sa$estimate
 ```
 
-The estimate of the treatment effect is `r s8_sa$estimate` and we can calculate
+The estimate of the treatment effect is `r s9_sa$estimate` and we can calculate
 its confidence interval using either of these:
 
 ```{r}
 #95% CI
-round(c(s8_sa$estimate, s8_sa$estimate - 1.96*s8_sa$se, s8_sa$estimate + 1.96*s8_sa$se), 2)
-round(c(s8_sa$estimate, s8_sa$estimate - 1.96*s8_sa$se_neyman, s8_sa$estimate + 1.96*s8_sa$se_neyman), 2)
+round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se, s9_sa$estimate + 1.96*s9_sa$se), 2)
+round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se_neyman, s9_sa$estimate + 1.96*s9_sa$se_neyman), 2)
 ```
 
 For this example, the Group-Time estimates and Cohort ATT estimates are quite
@@ -2295,9 +2295,10 @@ To use this estimator, the `time_first_treat` variable needs to be set to
 missing for the untreated states for the function to run:
 
 ```{r}
-all_states %<>% mutate(time_first_treat3 = case_when(time_first_treat2 == 15 ~ as.Date("2016-04-01"),
-                                                    time_first_treat2 == 22 ~ as.Date("2016-11-01"),
-                                                    is.infinite(time_first_treat2) ~ NA_Date_))
+all_states %<>% 
+  mutate(time_first_treat3 = case_when(time_first_treat2 == 15 ~ as.Date("2016-04-01"),
+                                       time_first_treat2 == 22 ~ as.Date("2016-11-01"),
+                                       is.infinite(time_first_treat2) ~ NA_Date_))
 
 #check the coding
 #table(all_states2$time_first_treat2, all_states2$time_first_treat3, useNA = "ifany")
@@ -2308,19 +2309,19 @@ Group-Time estimates plot, showing no discernible trends in the pre-exposure
 period, and an increasing effect of treatment in the post-exposure period.
 
 ```{r}
-s8_bm <- fit_event_jack(outcome_var = "outcome", 
+s9_bm <- fit_event_jack(outcome_var = "outcome", 
                         date_var = "time3", 
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states, 
                         max_time_to = 10e7)
 
-s8_bm_ave <- s8_bm %>% filter(cohort == "average")
+s9_bm_ave <- s9_bm %>% filter(cohort == "average")
 
-s8_bm_ave %<>% mutate(lb = estimate - 1.96*se,
+s9_bm_ave %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
 
-ggplot(s8_bm_ave, aes(x = event_time, y = estimate)) + 
+ggplot(s9_bm_ave, aes(x = event_time, y = estimate)) + 
   geom_hline(yintercept = 0, lty = 2) +
   geom_point(aes(col = event_time >= 0)) + 
   geom_linerange(aes(ymin = lb, ymax = ub, col = event_time >= 0)) + 
@@ -2331,11 +2332,11 @@ ggplot(s8_bm_ave, aes(x = event_time, y = estimate)) +
   
 ```
 
-# Scenario 9 (same as previous but with less pre-exposure time)
+# Scenario 10 (same as previous but with less pre-exposure time)
 
-In this scenario, we use the same data from Scenario 8, except we limit the 
+In this scenario, we use the same data from Scenario 9, except we limit the 
 pre-intervention point to 5 time units, rather than the 15 
-in Scenario 8. The amount of pre-intervention time should not affect the size of 
+in Scenario 9. The amount of pre-intervention time should not affect the size of 
 the effect estimate because the size of the change from the previous scenario is
 the same. The goal of this scenario is to see how the different estimators are 
 affected by this change in the amount of pre-intervention time.
@@ -2351,74 +2352,74 @@ all_states2 <- all_states %>% filter(time >= 10)
 And then we re-run the model: 
 
 ```{r}
-s9_mod <- lm(outcome ~ policy + factor(state) + factor(time), 
+s10_mod <- lm(outcome ~ policy + factor(state) + factor(time), 
              data = all_states2)
-tidy(s9_mod)
+tidy(s10_mod)
 ```
 
 Again, we use the `vcovHC` function to estimate the SE and obtain the 
 95% confidence interval for the policy coefficient:
 
 ```{r}
-m2_var <- vcovHC(s9_mod)
-est2 = summary(s9_mod)$coefficients["policy1", "Estimate"] 
-lb2 = summary(s9_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
-ub2 = summary(s9_mod)$coefficients["policy1", "Estimate"] + 1.96*sqrt(m2_var["policy1","policy1"])
+m2_var <- vcovHC(s10_mod)
+est2 = summary(s10_mod)$coefficients["policy1", "Estimate"] 
+lb2 = summary(s10_mod)$coefficients["policy1", "Estimate"] - 1.96*sqrt(m2_var["policy1","policy1"]) 
+ub2 = summary(s10_mod)$coefficients["policy1", "Estimate"] + 1.96*sqrt(m2_var["policy1","policy1"])
 ```
 
 The estimated effect is `r round(est2, 1)` with a 95% CI from `r sprintf("%.1f", round(lb2, 1))`
-to `r round(ub2, 1)`. Let's compare this with the estimate from Scenario 8:
+to `r round(ub2, 1)`. Let's compare this with the estimate from Scenario 9:
 
 |           | Estimate (95% CI) | 
 |----------:|:------------------|
-|Scenario 8 | `r paste0(round(est, 1), " (", sprintf("%.1f", round(lb, 1)), ",", round(ub, 1), ")")`  | 
-|Scenario 9 | `r paste0(round(est2, 1), " (", sprintf("%.1f", round(lb2, 1)), ",", round(ub2, 1), ")")` |
+|Scenario 9 | `r paste0(round(est, 1), " (", sprintf("%.1f", round(lb, 1)), ",", round(ub, 1), ")")`  | 
+|Scenario 10 | `r paste0(round(est2, 1), " (", sprintf("%.1f", round(lb2, 1)), ",", round(ub2, 1), ")")` |
 
-The estimate for Scenario 9 is much lower than that for Scenario
-8. 
+The estimate for Scenario 10 is much lower than that for Scenario
+9. 
 
 ## Comparison of Goodman Bacon decomposition weights
 
-Let's see how the weights from the Bacon decomposition for Scenario 9 compare
-to Scenario 8. 
+Let's see how the weights from the Bacon decomposition for Scenario 10 compare
+to Scenario 9. 
 
-Scenario 9 weights:
+Scenario 10 weights:
 
 ```{r}
 all_states2 %<>% mutate(policy_n = as.numeric(policy))
 
-s9_bacon <- bacon(outcome ~ policy_n,
+s10_bacon <- bacon(outcome ~ policy_n,
       data = all_states2,
       id_var = "state",
       time_var = "time")
 
-s9_bacon
+s10_bacon
 ```
 
-Scenario 8 weights:
+Scenario 9 weights:
 
 ```{r}
-s8_bacon
+s9_bacon
 
 ```
 
 Comparing the weights:
 
 ```{r, echo=F}
-s8_weights <- s8_bacon %>% select(weight) %>% rename(`Scenario 8 weight` = weight)  
-compare_bacon <- s9_bacon %>% rename(`Scenario 9 weight` = weight) 
-comparison <- bind_cols(s8_weights, compare_bacon) %>% relocate(`Scenario 8 weight`, .before = `Scenario 9 weight`)
-comparison %>% mutate(`Weight difference` = `Scenario 9 weight` - `Scenario 8 weight`) %>% 
+s9_weights <- s9_bacon %>% select(weight) %>% rename(`Scenario 9 weight` = weight)  
+compare_bacon <- s10_bacon %>% rename(`Scenario 10 weight` = weight) 
+comparison <- bind_cols(s9_weights, compare_bacon) %>% relocate(`Scenario 9 weight`, .before = `Scenario 10 weight`)
+comparison %>% mutate(`Weight difference` = `Scenario 10 weight` - `Scenario 9 weight`) %>% 
   mutate_if(is.numeric, ~round(., 2)) %>% relocate(type, .after = last_col())
 ```
 
 More weight is put on the states treated at time=22 in Scenario
-9 vs. 8 and less weight on the states treated at time=15. This is because the 
+10 vs. 9 and less weight on the states treated at time=15. This is because the 
 TWFE estimator is a weighted combination of contrasts, where the weights are partially 
 determined by how close the contrast is to the middle of the panel.
 More weight is put on the estimates for groups with changes closer to the middle of
-the panel. For Scenario 8, the states with treatment changes at time 15 are exactly
-in the middle of the panel (which had 30 time units), but for Scenario 9, with 
+the panel. For Scenario 9, the states with treatment changes at time 15 are exactly
+in the middle of the panel (which had 30 time units), but for Scenario 10, with 
 a shortened pre-treatment period, less weight is put on this group as they are
 further away from the middle of the panel and more weight is put on the group 
 that introduced treatment at time point 22 because this becomes closer to the middle.
@@ -2431,7 +2432,7 @@ that the researcher would choose. Concerning!
 Let's see how the other estimators are affected by this change:
 
 ```{r}
-s9_cs <- att_gt(yname = "outcome", 
+s10_cs <- att_gt(yname = "outcome", 
              tname = "time", 
              idname = "state", 
              gname = "time_first_treat", 
@@ -2439,8 +2440,8 @@ s9_cs <- att_gt(yname = "outcome",
              control_group = "notyettreated",
              anticipation = 0)
 
-s9_cs_ag <- aggte(s9_cs, type="simple")
-summary(s9_cs_ag)
+s10_cs_ag <- aggte(s10_cs, type="simple")
+summary(s10_cs_ag)
 ```
 
 The Callaway Sant'Anna estimate of the ATT is the same as for Scenario 9 (with
@@ -2451,16 +2452,16 @@ a slightly lower standard error).
 What about the Cohort ATT estimate? 
 
 ```{r}
-s9_sa <- staggered_sa(df = all_states2,
+s10_sa <- staggered_sa(df = all_states2,
                       i = "state",
                       t = "time",
                       g = "time_first_treat2",
                       y = "outcome", 
                       estimand = "simple")
 
-s9_sa$estimate
-round(c(s8_sa$estimate, s8_sa$estimate - 1.96*s8_sa$se, s8_sa$estimate + 1.96*s8_sa$se), 2)
-round(c(s8_sa$estimate, s8_sa$estimate - 1.96*s8_sa$se_neyman, s8_sa$estimate + 1.96*s8_sa$se_neyman), 2)
+s10_sa$estimate
+round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se, s9_sa$estimate + 1.96*s9_sa$se), 2)
+round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se_neyman, s9_sa$estimate + 1.96*s9_sa$se_neyman), 2)
 ```
 
 Like the Group-Time ATT estimate, the Cohort ATT estimate stays exactly the same.
@@ -2470,29 +2471,29 @@ Like the Group-Time ATT estimate, the Cohort ATT estimate stays exactly the same
 Lastly, what happens to the Target Trail estimates? We compare them below:
 
 ```{r}
-s8_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
+s9_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
                         date_var = "time3", 
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states, 
                         max_time_to = 10e7)
 
-s8_bm_hte %<>% mutate(lb = estimate - 1.96*se,
+s9_bm_hte %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
 
-s8_bm_hte
+s9_bm_hte
 
-s9_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
+s10_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
                         date_var = "time3", 
                         unit_var = "state",
                         policy_var = "time_first_treat3", 
                         data = all_states2, 
                         max_time_to = 10e7)
 
-s9_bm_hte %<>% mutate(lb = estimate - 1.96*se,
+s10_bm_hte %<>% mutate(lb = estimate - 1.96*se,
                       ub = estimate + 1.96*se)
 
-s9_bm_hte
+s10_bm_hte
 ```
 
 The Target Trial estimates stay exactly the same as well.
