@@ -21,10 +21,11 @@ colorize <- function(x, color) {
   if (knitr::is_latex_output()) {
     sprintf("\\textcolor{%s}{%s}", color, x)
   } else if (knitr::is_html_output()) {
-    sprintf("<span style='color: %s;'>%s</span>", color,
+    sprintf("<b><span style='color: %s;'>%s</span></b>", color,
       x)
   } else x
 }
+
 
 library(r2symbols)
 ```
@@ -1198,7 +1199,7 @@ In the previous scenarios, it has been relatively straightforward to identify
 the true causal effect that we would like to estimate. With dynamic effects, 
 there are a few possibilities:
 
-1. **Time-specific dynamic effects**: Calculate the causal effect of the policy at 
+**Time-specific dynamic effects**: Calculate the causal effect of the policy at 
 each time post-policy change. To see how these are calculated, see columns I and 
 J in the "scen6" sheet of the Excel spreadsheet containing the imported data. 
 Column J corresponds to the difference between the observed outcome (after
@@ -1217,23 +1218,45 @@ the ATT at the first time point equals 3, and so on (e.g., these are averages
 across the two treated states). When estimating the effects dynamically, these 
 are the time-since-treatment-specific parameters we aim to estimate.
 
-2. **The average dynamic effect**: You may prefer a summary estimate, that  
-aggregates across all post-treatment time into one number. Two possible ways to 
-summarize into one number are as follows:
+You may prefer a summary estimate, that aggregates across all post-treatment 
+time into one number. Three possible ways to summarize into one number are as follows:
 
-2.i) **Simple average of the dynamic effect**: Take the average of the causal 
-   effects across all the time points:
+```{r echo=F}
+blue_hex <- "#2885C2"
+orange_hex <- "#fcba03"
+green_hex <- "#28C269"
+```
+
+`r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` 
+
+Take an average of the estimated effects across the treated units:
+
+$\frac{\text{Number in adoption cohort 1}}{\text{Number of treated units}} \times ATT_{adoption cohort 1} + \frac{\text{Number in adoption cohort 2}}{\text{Number of treated units}} \times ATT_{adoption cohort 2}$
+
+$\frac{1}{2}\times 10.5 + \frac{1}{2}\times 7 = 8.75$
+
+<br>
+<br>
+
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` 
+
+Take the average of the causal effects across all the time points:
 
 $$\frac{ATT_{t=1} + ATT_{t=2} +...+ ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{3 + 4 + ... + 18}{16} = \frac{168}{16} = 10.5$$
+<br>
+<br>
 
-2.ii) **Weighted average of the dynamic effect**: Take a weighted average of 
-   the causal effects, where the weights correspond to the number of units 
-   treated at each time point:
+`r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)` 
+
+Take a weighted average of the causal effects, where the weights correspond to 
+the number of units treated at each time point:
    
    $$\frac{2\times{ATT_{t=1}} +2\times{ATT_{t=2}} + ... + 2\times{ATT_{t=9} + ATT_{t=10} + ... ATT_{t=16}}}{\text{Total number of state-time points}}$$
    
    $$\frac{2\times(3+4+...+11) + (12+13+...+18)}{25} = 9.24$$
-   
+<br>
+<br>
+
 ## TWFE Regression Model
 
 ```{r}
@@ -1243,7 +1266,7 @@ tidy(s6_mod)
 ```
 
 The coefficient of the policy term equals `r s6_mod$coefficients["policy1"] %>% round(2)`.
-This is much smaller than the 10.5 we aimed to estimate. To see how the TWFE
+This is smaller than any of `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` , `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` , or `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`. To see how the TWFE
 came to be this number, we use the Goodman Bacon decomposition to see how much
 weight each of the contrasts contributes to the effect estimate:
 
@@ -1293,7 +1316,7 @@ because it includes estimates for pre-policy time, which helps with the
 evaluation of the parallel trends assumption or to see if there are any lead 
 effects ("anticipation") of the treatment on the outcome. You wouldn't usually 
 report this entire table, but it worth showing here to see how the estimated 
-effect is dynamic and that decisions need to be make about how to report dynamics
+effect is dynamic and that decisions need to be make about how to report dynamics\
 effects including whether or not to aggregate the effect, and if so, at what level.
 
 ```{r, warning=F}
@@ -1317,7 +1340,7 @@ average, where the weights correspond to each adoption cohort's time spent in
 the post-treatment period. For contrast 1, there are 16 time periods post 
 treatment and for contrast 2, there are 9 periods post-treatment. Thus the 
 weighted average is: $10.5\times(16/25) + 7\times(9/25)=$ `r 10.5*(16/25) + 7*(9/25)`.
-Note that this corresponds to the weighted average dynamic effect calculated in 
+Note that this corresponds to `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)` calculated in 
 Section 8.2 above.
 
 ```{r}
@@ -1338,9 +1361,9 @@ summary(s6_cs_ag2)
 ```
 
 The output also displays an estimate of the Overall ATT, equal to `r s6_cs_ag2$overall.att`.
-This estimate is different from the one estimated `where type = "simple"`. Here,
-the estimate is a weighted average, with weights proportional to the number of 
-units in each adoption cohort (e.g., $(1/2)\times 10.5 + (1/2) \times 7.0=$ `r s6_cs_ag2$overall.att`). Thus, the researcher may want to estimate the ATT
+This estimate is different from the one estimated `where type = "simple"`, and is 
+equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
+Thus, the researcher may want to estimate the ATT
 using this method if they prefer these weights over the weights specified by the
 previous model.
 
@@ -1355,8 +1378,7 @@ summary(s6_cs_ag3)
 
 Again, the Overall ATT effect estimate is different from the other two. Here, it 
 is a simple average of all effects in the post-treatment time. This is equal to 
-$(3 + 4 + ... + 18)/16 = 10.5$. Note that this corresponds to the simple average
-dynamic effect calculated in Section 8.2 above.
+$(3 + 4 + ... + 18)/16 = 10.5$, which equals `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`.
 
 If you are more interested in the dynamic effect over time, it is  helpful to 
 plot the estimates using the `ggdid()` function:
@@ -1429,8 +1451,8 @@ s6_bm2$estimate
 ```
 
 The aggregated effect estimate equals `r s6_bm2$estimate`, equivalent to the 
-Overall ATT from the Group-Time estimator when `type = "dynamic"` and to the 
-parameter value we aimed to estimate.
+Overall ATT from the Group-Time estimator when `type = "dynamic"` and to 
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`
 
 ## TWFE with `time_since_policy` specification
 
@@ -1669,28 +1691,35 @@ their average at each time point in the last column. In times 10 or larger,
 there is only one treated state, so the average is equal to that one state's 
 causal effect. When estimating the effects dynamically, these are the time-since-treatment-specific parameters we aim to estimate.
 
-2. **The average effect**: You may prefer a summary estimate that 
-aggregates across all post-treatment time into one number. In scenario 6 we 
-outlined two ways to summarize the estimate. Here we add a third way that can 
-be used when the effect is heterogeneous by state.
+You may prefer a summary estimate that aggregates across all post-treatment time
+into one number. Three possible ways to summarize into one number are as follows:
 
-2.i) **Simple average of the dynamic effect**: Take the average of the causal 
-effects across all the time points:
+`r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` 
+
+Take a simple average of the heterogeneous treatment effects:
+
+$$\frac{ATT_{\text{3 vs 1,2}} + ATT_{\text{4 vs 1,2}}}{2} = \frac{18 + 5}{2} = 11.5$$
+<br>
+<br>
+
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`
+
+Take the average of the causal effects across all the time points:
 
 $$\frac{ATT_{t=1} + ATT_{t=2} + ATT_{t=16}}{\text{Number of post-treatment times}} = \frac{2 + 3.5 + ... + 33}{16} = \frac{261}{16} = 16.3125$$
+<br>
+<br>
 
-2.ii) **Weighted average of the dynamic effects**: Take a weighted average of the 
-causal effects, where the weights correspond to the number of units treated at
-each time point:
+`r emo::ji("green_book")` `r colorize("Causal Effect B", green_hex)`
+
+Take a weighted average of the causal effects, where the weights correspond to 
+the number of units treated at each time point:
 
 $$\frac{2\times ATT_{t=1} + 2\times ATT_{t=2} + ... + 2 \times ATT_{t=9} + ATT_{t=10} + ... + ATT_{t=16}}{\text{Number of post-treatment times}}$$
 
 $$\frac{2 \times (2 + 3.5 + ... + 14) + (21 + 23 ... + 33)}{25} = 13.32$$
-
-2.iii) **Simple average of the average heterogeneous effects**: Take a simple 
-average of the heterogeneous treatment effects:
-
-$$\frac{ATT_{\text{3 vs 1,2}} + ATT_{\text{4 vs 1,2}}}{2} = \frac{18 + 5}{2} = 11.5$$
+<br>
+<br>
 
 ## TWFE Regression Model
 
@@ -1703,13 +1732,13 @@ tidy(s7_mod)
 ```
 
 The coefficient of the policy term equals `r s7_mod$coefficients["policy1"] %>% round(2)`.
-This quantity is much lower than the average dynamic effect of 16.31 we aim to 
-estimate. Why is the TWFE estimate so much lower? In the previous scenario we 
+This is smaller than any of `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)` , `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)` , or `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`. Why is the 
+TWFE estimate so much lower? In the previous scenario we 
 learned how the TWFE estimate considers each possible contrast between a treated
 state a those untreated at the same time. The fourth
-contrast in this setting did not satisfy the parallel trends assumption, but the other three
-contrasts did. How much weight did the TWFE estimator put on each of the contrasts?
-Let's consider the Goodman Bacon decomposition to see how 
+contrast in this setting did not satisfy the parallel trends assumption, but the
+other three contrasts did. How much weight did the TWFE estimator put on each of
+the contrasts? Let's consider the Goodman Bacon decomposition to see how 
 much each contrast contributed to the TWFE estimate: 
 
 ## Goodman Bacon Decomposition
@@ -1769,7 +1798,7 @@ the total time in the post-treatment period. For contrast 1, there are 16
 time periods post treatment and for contrast 2, there are 9 periods 
 post-treatment. Thus this estimate is the weighted average: 
 $18\times(16/25) + 5\times(9/25)=$ `r 18*(16/25) + 5*(9/25)` . Note that this 
-is equal to the weighted average of the dynamic effects calculated in Section 9.2.
+is equal to `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`.
 
 ```{r}
 #aggregate the group time average treatment effects
@@ -1787,8 +1816,7 @@ s7_cs_ag2 <- aggte(s7_cs, type = "group")
 summary(s7_cs_ag2)
 ```
 
-Note here that the Overall ATT is a simple average of the two groups (e.g., (18 + 5)/2 = 11.5), 
-equal to the simple average of the heterogeneous effects calulated in Section 9.2.
+Note here that the Overall ATT is a simple average of the two groups (e.g., (18 + 5)/2 = 11.5), equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
 
 Alternatively, you can estimate the dynamic effect separately for each time 
 since the treatment has been introduced. Remember that this effect estimation
@@ -1801,8 +1829,8 @@ summary(s7_cs_ag3)
 ```
 
 Note here that the Overall ATT is a simple average of all effects in the post-treatment 
-time. This is equal to (2 + 3.5 + 5 + 6.5 + ... + 33)/16=16.31, which we also 
-calculated in Section 9.2
+time. This is equal to (2 + 3.5 + 5 + 6.5 + ... + 33)/16=16.31, which is equal 
+to `r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`.
 
 Because the treatment effect is heterogeneous (the later treated state
 has a smaller treatment effect than the earlier treated state) and because there
@@ -1874,7 +1902,8 @@ s7_bm2$estimate
 ```
 
 This gives the same estimate as produced by the Group-Time ATT estimator when 
-specifying `type = "dynamic"` in the `aggte()` function.
+specifying `type = "dynamic"` in the `aggte()` function, and also equals
+`r emo::ji("orange_book")` `r colorize("Causal Effect B", orange_hex)`.
 
 If instead you want to estimate the overarching ATT using the same approach as
 used when `type = "group"`, you can use the `fit_event_jack_sum_hte()` function:
@@ -1890,6 +1919,7 @@ s7_bm3 <- fit_event_jack_sum_hte(outcome_var = "outcome",
 s7_bm3$estimate
 ```
 
+This is equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
 
 ## TWFE with `time_since_policy` specification
 
@@ -1904,6 +1934,7 @@ tidy(s7_mod2) %>% filter(str_detect(term, "time_since")) %>%
   mutate(time = as.numeric(gsub("time_since_policy", "", term))) %>% 
   arrange(time) 
 ```
+
 The effect estimates on the policy indicators do not equal an average of the ATTs
 from the two states for each time period. For this example, this specification 
 gives estimates that are systematically lower than the parameters we aim to 
