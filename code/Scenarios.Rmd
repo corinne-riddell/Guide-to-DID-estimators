@@ -82,8 +82,8 @@ Goodman-Bacon decomposition to this parameter to determine if the TWFE estimate
 is influenced by estimates that are "forbidden" (e.g., ones that compare a 
 newly treated state to a previously treated state). The goal is to illustrate 
 when the usual TWFE method of estimation provides suitable results and when
-the TWFE approach is biased. In the latter case, we show alternative methods to
-estimation to overcome the issue.
+the TWFE approach is biased `r colorize("and/or weighted in an unintuitive way", "red")`. In the latter case, we show alternative methods to
+estimation to overcome these issues.
 
 In the following examples, the effect of state policy changes on a health 
 outcome is the effect of interest. 
@@ -146,8 +146,8 @@ source("./helper_func_ed_sum_hte.R")
 ```
 
 The first file is a slightly edited version of the original helper_funcs.R file
-found in Ben-Michael's linked GitHub repository. The other helper functions are ones
-Dana Goin made to aggregate the estimates under different settings.
+found in Eli Ben-Michael's linked GitHub repository. The other helper functions 
+are ones that Dana Goin made to aggregate the estimates under different settings.
 
 ## Package Versions
 
@@ -769,7 +769,8 @@ this function in the scenario that incorporates noise into the data.
 
 Scenario 5 introduces staggered timing. In this example, the treated states 
 introduce the policy at two different time points. The treatment effects are 
-non-dynamic and there are two never-treated states and two ever-treated states.
+neither heterogeneous or dynamic. There are two never-treated states and two 
+ever-treated states.
 
 ```{r}
 s5 <- read_xlsx(here("data", "scenarios.xlsx"), sheet = "scen5",
@@ -981,7 +982,7 @@ chunk header for this specific chunk. This is because it prints more than 100
 lines of the same warning "## Warning in max(abs(b/bSigma), na.rm = TRUE): no non-missing arguments to max;
 ## returning -Inf". This warning is because there is no variability in the the 
 data so the model cannot estimate a standard error. This is not realistic, and in
-a later example we will add in variability. I will suppress the warnings in this
+a later example we incorporate variability. I suppress the warnings in this
 document whenever they are too numerous. In practice, you will want to 
 heed warnings and understand why they occur before suppressing them.
 
@@ -1333,7 +1334,7 @@ summary(s6_cs)
 ```
 
 Callaway and Sant'Anna provide many options for aggregating the group-time 
-effects. The simplest option is specify `type = simple` in the `attge()` function.
+effects. The simplest option is to specify `type = simple` in the `attge()` function.
 This estimate considers only the contrasts with a never-treated state (i.e., 
 Comparisons 1 and 2 in the figure above) and combines them into a weighted 
 average, where the weights correspond to each adoption cohort's time spent in 
@@ -1388,7 +1389,7 @@ ggdid(s6_cs_ag3)
 ```
 
 Lastly, you can use `type = "calendar"` to aggregate the effects over calendar
-time. Epidemiologically, this doesn't make a lot of sense with dynamic effects
+time. Epidemiologically, this is not sensible under the context of dynamic effects
 because it is mixing effect estimates across different times since treatment
 was introduced. In some cases, only one comparison is contributing to the estimation
 (e.g., in calendar time periods where only one group has introduced the treatment), 
@@ -1437,7 +1438,7 @@ ggplot(s6_bm_ave, aes(x = event_time, y = estimate)) +
 ```
 
 To summarize the dynamic effects into one aggregated effect estimate
-we use the fit_event_jack_sum() function:
+we use the `fit_event_jack_sum()` function:
 
 ```{r}
 s6_bm2 <- fit_event_jack_sum(outcome_var = "outcome", 
@@ -1475,7 +1476,7 @@ time-since-treatment-specific parameters we identified earlier.
 
 When the treatment effect is staggered and dynamic, you can still 
 capture the effect estimate using a TWFE model so long as the policy effect is 
-modeled using the `time since treatment` variable. The key question for the 
+modeled using the `time_since_policy` variable. The key question for the 
 researcher is to identify the parameter of interest -- are you interested in 
 estimating a dynamic effect, or does a parameter that summarizes over treatment
 time make sense? 
@@ -1761,7 +1762,7 @@ s7_cs <- att_gt(yname = "outcome",
 ```
 
 Callaway and Sant'Anna provide many options for aggregating the group-time 
-effects. The simplest option is specify `type = simple` in the `attge()` function.
+effects. The simplest option is to specify `type = simple` in the `attge()` function.
 This estimate considers only the contrasts with a never-treated state (i.e., 
 Comparisons 1 and 2 in the figure above) and combines them into a weighted 
 average, where the weights correspond to each adoption cohort's time spent in 
