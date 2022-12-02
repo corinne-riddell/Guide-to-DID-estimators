@@ -143,10 +143,11 @@ you downloaded the files using the `use_course()` function in the previous step.
 source("./helper_func_ed.R")
 source("./helper_func_ed_sum.R")
 source("./helper_func_ed_sum_hte.R")
+source("./helper_func_ed_sum_C.R")
 ```
 
 The first file is a slightly edited version of the original helper_funcs.R file
-found in Eli Ben-Michael's linked GitHub repository. The other helper functions 
+found in Eli Ben-Michael's linked GitHub repository. The remaining helper functions 
 are ones that Dana Goin made to aggregate the estimates under different settings.
 
 ## Package Versions
@@ -735,9 +736,9 @@ by Ben-Michael, Feller, and Stuart. We employ slightly edited versions of the
 code that these authors provide with their published article. The code 
 calculates estimates of the effect for every event time (also called time since 
 treatment). We built upon this code to further aggregate across event times to 
-produce one overall estimate using the `fit_event_jack_sum()` and 
-`fit_event_jack_sum_hte()` functions. Use `fit_event_jack_sum()` when there is 
-only one adoption cohort, as shown here.
+produce one overall estimate using `fit_event_jack_sum()`, 
+`fit_event_jack_sum_hte()`, and `fit_event_jack_sum_C()` functions. Use 
+`fit_event_jack_sum()` when there is only one adoption cohort, as shown here.
 
 Note that when you run this function, messages are printed to the screen of the
 form "Dropping #". These messages are outputted by the jackknife function that
@@ -1839,9 +1840,10 @@ ggplot(s7_bm_ave, aes(x = event_time, y = estimate)) +
 ```
 
 To summarize the effects into one aggregated effect estimate
-we use either the `fit_event_jack_sum()` function or `fit_event_jack_sum_hte()`
-functions. The functions estimate different causal effects, so choose the one 
-that corresponds in the effect estimate you are interested in.
+we use one of the `fit_event_jack_sum()`, `fit_event_jack_sum_hte()`, or 
+`fit_event_jack_sum_C()` functions. The functions estimate different causal 
+effects, so choose the one that corresponds in the effect estimate you are
+interested in.
 
 Let's calculate the aggregated estimate using `fit_event_jack_sum()` first:
 
@@ -1872,6 +1874,21 @@ s7_bm3$estimate
 ```
 
 The aggregated effect estimate using `fit_event_jack_sum_hte()` equals `r s7_bm3$estimate`, equivalent to the `r emo::ji("orange_book")` `r colorize("Causal Effect A", blue_hex)`.
+
+Finally, we can compare this to the aggregated effect estimate from `fit_event_jack_sum_C()`: 
+
+```{r}
+s7_bm4 <- fit_event_jack_sum_C(outcome_var = "outcome", 
+                            date_var = "time_as_date", 
+                            unit_var = "state",
+                            policy_var = "time_first_trt_date", 
+                            data = s7, 
+                            max_time_to = 10e7)
+
+s7_bm4$estimate
+```
+
+The aggregated effect estimate using `fit_event_jack_sum_C()` equals `r s7_bm4$estimate`, equivalent to the `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`.
 
 ## Summary
 
@@ -2322,6 +2339,22 @@ s8_bm3$estimate
 ```
 
 This is equal to `r emo::ji("blue_book")` `r colorize("Causal Effect A", blue_hex)`.
+
+Finally if you want to estimate the overarching ATT using the same approach as used when type = "simple" you can use the `fit_event_jack_sum_C()` function:
+
+```{r}
+s8_bm4 <- fit_event_jack_sum_C(outcome_var = "outcome", 
+                        date_var = "time_as_date", 
+                        unit_var = "state",
+                        policy_var = "time_first_trt_date", 
+                        data = s8, 
+                        max_time_to = 10e7)
+
+s8_bm4$estimate
+```
+
+This is equal to `r emo::ji("green_book")` `r colorize("Causal Effect C", green_hex)`.
+
 
 ## TWFE with `time_since_policy` specification
 
