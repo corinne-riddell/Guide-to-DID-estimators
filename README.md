@@ -11,7 +11,7 @@ We start with the simplest of DID scenarios and slowly amp up the complexity. Fo
 
 If you are interested in reading this resource online, you can find it [here](https://rpubs.com/corinne-riddell/927985).
 
-If you wouldd rather run the R code locally, you can download everything you need from this GitHub repository. Use this code in the R console:
+If you would rather run the R code locally, you can download everything you need from this GitHub repository. Use this code in the R console:
 
 install.packages("usethis") #run this line if you need to install the usethis package
 usethis::use_course("corinne-riddell/Guide-to-DID-estimators")
