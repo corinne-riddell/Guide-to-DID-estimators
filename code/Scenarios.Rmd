@@ -2615,7 +2615,8 @@ shortened.
 
 ## Group-Time ATT Estimator
 
-Compare to Callaway and Sant'Anna's approach:
+Compare to Callaway and Sant'Anna's approach. We will start be specifying 
+`type="simple" in the aggte() function`:
 
 ```{r}
 s9_cs <- att_gt(yname = "outcome", 
@@ -2652,7 +2653,7 @@ s9_cs_ag2 <- aggte(s9_cs, type = "group")
 summary(s9_cs_ag2)
 ```
 
-Here the Overall ATT is a simple average of the group-specific ATTs (`r round((s9_cs_ag2$att.egt[1] + s9_cs_ag2$att.egt[2])/2, 4)`).
+Here the overall ATT is a simple average of the group-specific ATTs (`r round((s9_cs_ag2$att.egt[1] + s9_cs_ag2$att.egt[2])/2, 4)`).
 
 Finally, we can look at these effect estimates separately for each time since 
 the intervention began and graph them: 
@@ -2676,7 +2677,7 @@ data.
 
 Now we can also calculate effects using the Cohort ATT estimator. We couldn't 
 run this estimator for the other scenarios because the function throws an error 
-if it's unable to estimate standard errors. To use the `staggered_sa` function, 
+if it is unable to estimate standard errors. To use the `staggered_sa` function, 
 we need to add a new variable where the `time_first_treat` variable is set to 
 `Inf` for all states that were never-treated:
 
@@ -2691,31 +2692,101 @@ table(all_states$time_first_treat, all_states$time_first_treat2, useNA = "always
 
 For this function, we need to specify the data frame in the `df` argument, the
 clustering unit in the `i` argument, the time unit in the `t` argument. Here we 
-use the newly-defined `time_first_treat2` as the grouping variable `g`. 
+use the newly-defined `time_first_treat2` as the grouping variable `g`. We start
+by setting `estimand = "simple"`:
 
-```{r}
+```{r SA-simple}
 s9_sa <- staggered_sa(df = all_states,
                       i = "state",
                       t = "time",
                       g = "time_first_treat2",
                       y = "outcome", 
                       estimand = "simple")
-
-s9_sa$estimate
 ```
 
-The estimate of the treatment effect is `r s9_sa$estimate` and we can calculate
-its confidence interval using either of these:
+The estimate of the treatment effect is `r s9_sa$estimate %>% round(2)`, which
+is equivalent to the effect estimate from the Group-Time ATT estimator when 
+`type = "simple"`. We can calculate its confidence interval using either of these:
 
 ```{r}
 #95% CI
 round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se, s9_sa$estimate + 1.96*s9_sa$se), 2)
 round(c(s9_sa$estimate, s9_sa$estimate - 1.96*s9_sa$se_neyman, s9_sa$estimate + 1.96*s9_sa$se_neyman), 2)
 ```
+To calculate an average weights by group size (or cohort size using the 
+terminology employed in this function), we set `estimand = "cohort"`:
 
-For this example, the Group-Time estimates and Cohort ATT estimates are quite
-close and have overlapping confidence intervals. They're both higher than the 
-TWFE estimate because they do not use information based on the forbidden contrast.
+```{r SA-cohort}
+s9_sa_group <- staggered_sa(df = all_states,
+                      i = "state",
+                      t = "time",
+                      g = "time_first_treat2",
+                      y = "outcome", 
+                      estimand = "cohort")
+
+s9_sa_group$estimate
+
+#95% CI
+round(c(s9_sa_group$estimate, 
+        s9_sa_group$estimate - 1.96*s9_sa_group$se, 
+        s9_sa_group$estimate + 1.96*s9_sa_group$se), 2)
+round(c(s9_sa_group$estimate, 
+        s9_sa_group$estimate - 1.96*s9_sa_group$se_neyman, 
+        s9_sa_group$estimate + 1.96*s9_sa_group$se_neyman), 2)
+```
+
+Here, the Cohort ATT effect estimate is equivalent to the Group-Time estimate where `type = "group"`.
+
+Finally, we can also use the Cohort ATT function to calculate dynamic effect
+estimates by setting `estimand = "eventstudy"`. This function also requires we 
+specify which event times we would like estimates for. To produce estimates we
+can compare with the Group Time ATT effects, we specify `eventTime = c(-20:15)`, 
+which says to begin looking 20 time points before the policy change up until 15
+time points after the policy change.
+
+```{r}
+times <- c(-20:15)
+
+s9_sa_dynamic <- staggered_sa(df = all_states,
+                      i = "state",
+                      t = "time",
+                      g = "time_first_treat2",
+                      y = "outcome", 
+                      estimand = "eventstudy",
+                      eventTime = times)
+
+# gather the estimates and CI information into a data frame for plotting
+sa_dynamic_estimates <- tibble(
+  `Event Time` = times,
+  `Estimate` = s9_sa_dynamic$estimate, 
+  `Std. Error` = s9_sa_dynamic$se,
+  `95% lower bound` = s9_sa_dynamic$estimate - 1.96*s9_sa_dynamic$se,
+  `95% upper bound` = s9_sa_dynamic$estimate + 1.96*s9_sa_dynamic$se,
+  `Std. Error (Neyman)` = s9_sa_dynamic$se_neyman,
+  `95% lower bound (Neyman)` = s9_sa_dynamic$estimate - 1.96*s9_sa_dynamic$se_neyman,
+  `95% upper bound (Neyman)` = s9_sa_dynamic$estimate + 1.96*s9_sa_dynamic$se_neyman)
+sa_dynamic_estimates
+```
+
+We can then create a plot similar to the one produced by the `ggdid()` command:
+
+```{r}
+ggplot(sa_dynamic_estimates, aes(x = `Event Time`, y = Estimate)) + 
+  geom_hline(yintercept = 0) + 
+  geom_linerange(aes(xmin = `Event Time`, 
+                     ymin = `95% lower bound (Neyman)`, 
+                     ymax = `95% upper bound (Neyman)`,
+                     col = `Event Time` >= 0)) + 
+  geom_point(aes(col = `Event Time` >= 0)) +
+  theme_bw() +
+  scale_color_discrete(labels=c('pre', 'post')) +
+  theme(legend.title=element_blank(), legend.position = "bottom")
+```
+
+Overall, the Group-Time estimates and Cohort ATT estimates are quite
+close and have overlapping confidence intervals. Favorably, the summary 
+estimates are both higher than the TWFE estimate because they do not use 
+information based on the forbidden contrast.
 
 ## Target Trial Estimator
 
@@ -2747,8 +2818,9 @@ all_states %<>%
 ```
 
 Then we compute the estimates and plot them. The results are very similar to the
-Group-Time estimates plot, showing no discernible trends in the pre-exposure
-period, and an increasing effect of treatment in the post-exposure period.
+Group-Time ATT and Cohort ATT estimates plot, showing no discernible trends in 
+the pre-exposure period, and an increasing effect of treatment in the 
+post-exposure period.
 
 ```{r}
 s9_bm <- fit_event_jack(outcome_var = "outcome", 
@@ -2771,7 +2843,50 @@ ggplot(s9_bm_ave, aes(x = event_time, y = estimate)) +
   theme_bw() + 
   scale_color_discrete(labels=c('pre', 'post')) +
   theme(legend.title=element_blank(), legend.position = "bottom")
-  
+```
+
+We then use the `fit_event_jack_sum` set of functions to calculate the ATT using 
+three different methods:
+
+```{r}
+s9_bm_sum <- fit_event_jack_sum(outcome_var = "outcome", 
+                        date_var = "time3", 
+                        unit_var = "state",
+                        policy_var = "time_first_treat3", 
+                        data = all_states, 
+                        max_time_to = 10e7)
+
+s9_bm_sum %<>% mutate(lb = estimate - 1.96*se,
+                      ub = estimate + 1.96*se)
+
+s9_bm_sum
+```
+
+```{r}
+s9_bm_sum_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
+                        date_var = "time3", 
+                        unit_var = "state",
+                        policy_var = "time_first_treat3", 
+                        data = all_states, 
+                        max_time_to = 10e7)
+
+s9_bm_sum_hte %<>% mutate(lb = estimate - 1.96*se,
+                      ub = estimate + 1.96*se)
+
+s9_bm_sum_hte
+```
+```{r}
+s9_bm_sum_simple <- fit_event_jack_sum_C(outcome_var = "outcome", 
+                        date_var = "time3", 
+                        unit_var = "state",
+                        policy_var = "time_first_treat3", 
+                        data = all_states, 
+                        max_time_to = 10e7)
+
+s9_bm_sum_simple %<>% mutate(lb = estimate - 1.96*se,
+                      ub = estimate + 1.96*se)
+
+s9_bm_sum_simple
 ```
 
 # Scenario 10 (same as previous but with less pre-exposure time)
@@ -2910,7 +3025,7 @@ Like the Group-Time ATT estimate, the Cohort ATT estimate stays exactly the same
 
 ## Comparison of the Target trial estimates
 
-Lastly, what happens to the Target Trail estimates? We compare them below:
+Lastly, what happens to the Target Trial estimates? We compare them below:
 
 ```{r}
 s9_bm_hte <- fit_event_jack_sum_hte(outcome_var = "outcome", 
