@@ -67,6 +67,9 @@ This website is under development. If you find an error, or would like to sugges
 an improvement, please let us know by opening an issue on [Github](https://github.com/corinne-riddell/Guide-to-DID-estimators)
 or submitting a bug report to: c.riddell [AT] berkeley [DOT] edu.
 
+Thank you to [@scottlyden](https://github.com/scottlyden) for contributing a fix
+via pull request. 
+
 # Overview
 
 This guide illustrates scenarios in which difference in differences (DID) 
@@ -119,7 +122,10 @@ First, load the packages for reading and plotting the data. The packages `bacond
 # "broom", "ggrepel", "lubridate", "bacondecomp", "staggered", "did"))
 # You may also need to download the developer version of `DRDID` before if you
 # get an error. To do so use: 
+# install.packages("devtools")
 # devtools::install_github("pedrohcgs/DRDID")
+# Finally, install the package emo from Hadley Wickham's GitHub:
+# devtools::install_github("hadley/emo")
 
 library(here) #nice file paths
 library(readxl) #read in excel data
@@ -132,6 +138,7 @@ library(lubridate) #helps with date objects
 library(bacondecomp) #Goodman Bacon Decomposition
 library(did) #Callaway and Sant'Anna estimator for DID
 library(staggered) #Sun and Abraham estimator for DID
+library(emo) #used to insert emojis into this document
 ```
 
 One estimator we use in the guide, the Target Trial estimator, was implemented 
