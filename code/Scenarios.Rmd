@@ -41,17 +41,17 @@ following citations:
 
 1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Submitted to *Epidemiology*. ADD LINK.
 
-2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health [Letter to the Editor]. Submitted to *Epidemiology*. ADD LINK.
+2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health [Letter to the Editor]. Accepted at *Epidemiology*. ADD LINK.
 
 On this website we refer to new estimators and tools from the econometric 
 literature. If you use any of the new estimators or tools, you will also want to 
 cite the following:
 
-* Paper about the Goodman-Bacon Decomposition: Goodman-Bacon A. Difference-in-differences with variation in treatment timing. *J Econom*. 2021 Jun;S0304407621001445.  
+* Paper about the Goodman-Bacon Decomposition: Goodman-Bacon A. Difference-in-differences with variation in treatment timing. *J Econom*. 2021;225(2):254-77.
 
-* Paper about the Group-Time ATT Estimator: Callaway B, Sant’Anna PHC. Difference-in-Differences with multiple time periods. *J Econom*. 2020 Dec;S0304407620303948. 
+* Paper about the Group-Time ATT Estimator: Callaway B, Sant’Anna PHC. Difference-in-Differences with multiple time periods. *J Econom*. 2020;225(2):200-30.
 
-* Paper about the Cohort ATT Estimator: Sun L, Abraham S. Estimating dynamic treatment effects in event studies with heterogeneous treatment effects. *J Econom*. 2021 Dec;225(2):175–99. 
+* Paper about the Cohort ATT Estimator: Sun L, Abraham S. Estimating dynamic treatment effects in event studies with heterogeneous treatment effects. *J Econom*. 2021;225(2):175–99. 
 
 * Paper about the Target Trial Estimator: Ben-Michael E, Feller A, Stuart EA. A Trial Emulation Approach for Policy Evaluations with Group-level Longitudinal Data. *Epidemiology*. 2021 Jul;32(4):533–40. 
 
