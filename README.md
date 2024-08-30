@@ -1,5 +1,5 @@
 # Guide-to-DID-estimators
-### [Corinne A Riddell](https://publichealth.berkeley.edu/people/corinne-riddell/), [Dana Goin](https://profiles.ucsf.edu/dana.goin)
+### [Corinne A Riddell](https://publichealth.berkeley.edu/people/corinne-riddell/), [Dana Goin](https://www.publichealth.columbia.edu/profile/dana-goin-phd)
 
 # Overview
 
