@@ -26,7 +26,7 @@ colorize <- function(x, color) {
   } else x
 }
 
-
+#install.packages("r2symbols")
 library(r2symbols)
 ```
 
@@ -39,9 +39,9 @@ the University of California, Berkeley (UC Berkeley) and San Francisco (UCSF),
 respectively. If you use this website to inform your research, please use the 
 following citations: 
 
-1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. Submitted to *Epidemiology*. ADD LINK.
+1. Goin DE, Riddell CA (2022). Comparing two-way fixed effects and new estimators for difference-in-differences: A simulation study and empirical example. *Epidemiology*. 2023;34(4):535-543. doi: 10.1097/EDE.0000000000001611. [Link.](https://pmc.ncbi.nlm.nih.gov/articles/PMC10771800/)
 
-2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health [Letter to the Editor]. Accepted at *Epidemiology*. ADD LINK.
+2. Riddell CA, Goin DE (2022). Guide for comparing estimators of policy change effects on health [Letter to the Editor]. *Epidemiology*. 2023;34(3):e21-22. doi:10.1097/EDE.0000000000001586. [Link.](https://pmc.ncbi.nlm.nih.gov/articles/PMC10771122/)
 
 On this website we refer to new estimators and tools from the econometric 
 literature. If you use any of the new estimators or tools, you will also want to 
@@ -111,19 +111,28 @@ open the Guide-to-DID-estimators.Rproj file found in the downloaded folder by
 double clicking it or by using the Select "File" > "Open Project" within RStudio
 and choosing the Guide-to-DID-estimators project.
 
+## Follow along from the code file
+
+Once the RStudio project is launched, use the "Files" tab to open the code folder
+and select the "Scenarios.Rmd" file. Navigate to the section that loads the 
+R packages and functions (line 121) to follow along with all the code displayed
+on this website!
+
 ## Load R packages and functions
 
 First, load the packages for reading and plotting the data. The packages `bacondecomp`,  
 `did`, and `staggered` are specific to DID analyses. 
 
 ```{r load-libraries, warning=F, message=F}
-# you will need to install these packages if you don't have them already
+# You will need to install these packages if you don't have them already
 # install.packages(c("here", "readxl", "tidyverse", "patchwork", "magrittr", 
 # "broom", "ggrepel", "lubridate", "bacondecomp", "staggered", "did"))
+
 # You may also need to download the developer version of `DRDID` before if you
 # get an error. To do so use: 
 # install.packages("devtools")
 # devtools::install_github("pedrohcgs/DRDID")
+
 # Finally, install the package emo from Hadley Wickham's GitHub:
 # devtools::install_github("hadley/emo")
 
@@ -147,10 +156,10 @@ We use `source()` to read in the functions below. This code will only work if
 you downloaded the files using the `use_course()` function in the previous step. 
 
 ```{r}
-source("./helper_func_ed.R")
-source("./helper_func_ed_sum.R")
-source("./helper_func_ed_sum_hte.R")
-source("./helper_func_ed_sum_C.R")
+source(here("code", "helper_func_ed.R"))
+source(here("code", "helper_func_ed_sum.R"))
+source(here("code", "./helper_func_ed_sum_hte.R"))
+source(here("code", "./helper_func_ed_sum_C.R"))
 ```
 
 The first file is a slightly edited version of the original helper_funcs.R file
@@ -216,19 +225,18 @@ The following can be read from the labelled plot:
 
 * Pre-treatment difference of 1
 * Post-treatment difference of 3
-* Causal effect of policy = 3-1 = 2 
-or equivalently, 
+* Causal effect estimate of policy = 3-1 = 2. Equivalently, 
 * State 1 difference of 5
 * State 2 difference of 3
-* Causal effect of policy = 5-3 = 2 
-under the following assumptions
+* Causal effect estimate of policy = 5-3 = 2. 
 
-Three standard assumptions are typical stated in DID papers and required for the 
-DID estimate to estimate the causal effect of interest:
+Three standard assumptions are typically stated in DID papers and required for the 
+DID estimate to equal the causal effect of interest:
 
-1) **Parallel trends** Had the treated group not been treated, the trends for 
-the treated state would continue to be the same as the never-treated state during
-the post treatment time period. 
+1) **Parallel trends:** The treated and untreated groups have parallel trends in
+the outcome in the pre-treatment period. Had the treated group not been treated,
+the trends for the treated state would continue to be the same as the 
+never-treated state during the post-treatment time period. 
 2) **No anticipation:** The effect of the policy change begins after it is introduced; 
 there is no anticipatory effect before the policy is introduced. Anticipatory
 effects occur if individuals change their behavior in anticipation of a 
@@ -238,12 +246,12 @@ the specific time it is adopted that causally affects the outcome.
 
 If you're familiar with causal inference theory, you will also know about the main 
 assumptions required when estimating causal effects. Ben-Michael et al. list 
-these assumptions in [their paper](https://pubmed-ncbi-nlm-nih-gov.libproxy.berkeley.edu/34001754/), and we 
+these assumptions in [their paper](https://pubmed.ncbi.nlm.nih.gov/34001754/), and we 
 include the assumptions here for reference:
 
 4) **Consistency:** There are no multiple versions of treatment that are unknown
-to the investigator. For example, if states introduced a texting ban while 
-driving and these bans were associated with different penalties, then the policy
+to the investigator. For example, if states introduced a ban on texting while 
+driving and if these bans were associated with different penalties, then the policy
 change would not meet the consistency assumption because the different penalties
 may have varied effects on the outcome and the investigator is analyzing these 
 policies as though they were the same. However, if the investigator knows that 
@@ -317,7 +325,7 @@ s2b %<>% mutate(ever_trt = case_when(state %in% c("2", "3") ~ "treated",
                                      state == "1" ~ "never-treated"))
 ```
 
-## Visualization of Scenario 2
+## Visualization of Scenarios 2a and 2b
 
 ```{r, echo=F}
 s2a_plot <-ggplot(s2a, aes(x = time, y = outcome)) + 
@@ -347,14 +355,14 @@ The following can be read from the labelled plot for Scenario 2a:
 * Post-Pre Difference for never-treated state 1: 12-9=3
 * Post-Pre Difference for treated state 2: 15-10=5
 * Post-Pre Difference for treated state 3: 16-11=5
-* Causal effect of policy = 5-3 for both states for an average treatment effect on the treated (ATT) of 2
+* Causal effect estimate of policy = 5-3 for both states for an average treatment effect on the treated (ATT) of 2
 
 The following can be read from the labelled plot for Scenario 2b:
 
 * Post-Pre Difference for never-treated state 1: 12-9=3
 * Post-Pre Difference for treated state 2: 15-10=5
 * Post-Pre Difference for treated state 3: 17-11=6
-* Causal effect of policy = 2 for state 2 vs 1 and 3 for state 3 vs 1 for an ATT of 2.5
+* Causal effect estimate of policy = 2 for state 2 vs 1 and 3 for state 3 vs 1 for an ATT of 2.5
 
 ## TWFE Regression model
 
@@ -379,7 +387,7 @@ The coefficient estimate for the policy variable equals to
 When there are multiple treatment groups and two time points, 
 where >1 of the groups becomes treated, you can calculate the DID estimate by 
 hand or using TWFE regression. If treatment effects are heterogeneous across 
-states, then the estimated effect is the average ATT across the 
+states, then the estimated effect is the average of the ATTs across the 
 states.
 
 # Scenario 3A and 3B (Two states, multiple time points)
@@ -421,7 +429,7 @@ s3a_mean_info <- s3a %>%
   summarise(mean_y = mean(outcome), .groups = 'drop') %>% 
   pivot_wider(id_cols = state, 
               names_from = post, 
-              names_pre = "post_",
+              names_prefix = "post_",
               values_from = mean_y) %>%
   mutate(diff = post_TRUE - post_FALSE)
 
@@ -429,12 +437,12 @@ s3b_mean_info <- s3b %>% group_by(state, post) %>%
   summarise(mean_y = mean(outcome), .groups = 'drop') %>% 
   pivot_wider(id_cols = state,
               names_from = post,
-              names_pre = "post_",
+              names_prefix = "post_",
               values_from = mean_y) %>%
   mutate(diff = post_TRUE - post_FALSE)
 ```
 
-## Visualization of Scenario 3
+## Visualization of Scenario 3a and 3b
 
 ```{r, echo=F, fig.height = 5, fig.width = 10}
 s3a %<>% mutate(ever_trt = case_when(state == "2" ~ "treated",
@@ -511,9 +519,9 @@ might level off after more time passes) or if there is a positive feedback loop.
 
 In contrast,  some policies may be associated with large initial effects that attenuate over 
 time. Knowing if a policy introduction is associated with a changing effect over
-time is therefore important for understanding the real-world effects of the policy. 
+time is important for understanding the real-world effects of the policy. 
 
-Thus, in this scenario we first estimate the average treatment effect using a 
+In this scenario we first estimate the average treatment effect using a 
 TWFE model, and then we estimate the dynamic effect by extending the TWFE model
 to include a categorical indicator for time since the policy's introduction. 
 
@@ -572,7 +580,7 @@ tidy(s3b_mod2)
 ```
 
 For this scenario, the effect estimate is 2 in the first time after treatment, 
-then 4, and so on. 
+then 4, and so on, as expected. 
 
 Note that we could have modeled `time_since_policy` linearly (e.g., by including
 a numeric variable for `time_since_policy`). Here, we modeled `time_since_policy`
@@ -610,7 +618,7 @@ s4 %<>% mutate(ever_trt = case_when(state %in% c("2", "3", "4") ~ "treated",
 
 s4_mean_info <- s4 %>% group_by(state, post) %>%
   summarise(mean_y = mean(outcome), .groups = "drop") %>% 
-  pivot_wider(id_cols = state, names_from = post, names_pre = "post_", values_from = mean_y) %>%
+  pivot_wider(id_cols = state, names_from = post, names_prefix = "post_", values_from = mean_y) %>%
   mutate(diff = post_TRUE - post_FALSE)
 ```
 
@@ -680,7 +688,7 @@ s4 %<>% mutate(state_n = as.numeric(as.character(state)),
 The `bacon` function has an argument called `formula`, where you list the outcome
 as a function of the policy change, i.e., `formula = outcome ~ policy_n`. Note 
 that no fixed effects for state or time are included in the formula. Instead, 
-the time and state fixedeffects are specified by the `time_var`and `id_var` 
+the time and state fixed effects are specified by the `time_var`and `id_var` 
 arguments.
 
 ```{r}
@@ -690,7 +698,7 @@ s4_bacon <- bacon(formula = outcome ~ policy_n,
                   time_var = "time")
 ```
 
-This small table illustrates that 100% of the weight is put on comparisons between
+This small table illustrates that 100% of the weight is on comparisons between
 treated and untreated states and the ATT equals 2.
 
 For more detail we  print the object:
@@ -713,18 +721,18 @@ argument called `gname`. `gname` expects a variable which encodes for each state
 the time of first policy change. For never-treated state 1, this variable 
 equals 0 and for treated states 2-4 this variable equals 6. Another important
 argument in the function is `control_group` which you can set to "nevertreated"
-or "notyettreated". When specifying "control_group=nevertreated", only states 
-that never receive the policy change are used as control states. When specifying "control_group=notyettreated", the control group expands to include states that
+or "notyettreated". When specifying "control_group='nevertreated'", only states 
+that never receive the policy change are used as control states. When specifying "control_group='notyettreated'", the control group expands to include states that
 have not yet received treatment at the time of the policy's introduction. In
 this guide, we use "notyetreated" as the control group since these states satisfy
 the parallel trends assumption and including them would increase statistical 
 precision (if there were noise in the estimates).
 
 ```{r, warning=F}
-s4_cs <- att_gt(yname = "outcome", 
-             tname = "time", 
-             idname = "state_n", 
-             gname = "time_first_treat", 
+s4_cs <- att_gt(yname = "outcome", #outcome variable name
+             tname = "time", #time variable name
+             idname = "state_n", #id variable name
+             gname = "time_first_treat", #time of first treatment variable name (see instructions above)
              data = s4, 
              control_group = "notyettreated",
              anticipation = 0)
@@ -992,7 +1000,7 @@ lines of the same warning "## Warning in max(abs(b/bSigma), na.rm = TRUE): no no
 data so the model cannot estimate a standard error. This is not realistic, and in
 a later example we incorporate variability. I suppress the warnings in this
 document whenever they are too numerous. In practice, you will want to 
-heed warnings and understand why they occur before suppressing them.
+heed warnings and understand why they occur.
 
 ```{r}
 s5_cs_ag <- aggte(s5_cs, type="simple")
