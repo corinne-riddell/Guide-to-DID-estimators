@@ -136,6 +136,9 @@ First, load the packages for reading and plotting the data. The packages `bacond
 # Finally, install the package emo from Hadley Wickham's GitHub:
 # devtools::install_github("hadley/emo")
 
+# Require the dev version of patchwork to avoid errors:
+devtools::install_github("thomasp85/patchwork") 
+
 library(here) #nice file paths
 library(readxl) #read in excel data
 library(tidyverse) #collection of packages for data science
@@ -219,6 +222,9 @@ ggplot(s1, aes(x = time, y = outcome)) +
   scale_color_manual(values = c("#a6cee3","#005a32")) +
   scale_shape_manual(values = c(21, 23)) + 
   theme_bw()
+
+ggsave(filename = here("images/scen1.png"), 
+       width = 5, height = 3.5, device = "png", dpi = 600)
 ```
 
 The following can be read from the labelled plot:
@@ -497,6 +503,9 @@ s3b_plot <- ggplot(s3b, aes(x = time, y = outcome)) +
 
 s3a_plot + s3b_plot + plot_layout(guides = "collect")  & 
   scale_y_continuous(limits = range(c(s3a$outcome, s3b$outcome)))
+
+ggsave(filename = here("images/scen3.png"), 
+       width = 10, height = 3.5, device = "png", dpi = 600)
 ```
 
 The following can be read from the labelled plot for Scenario 3a:
